@@ -1,0 +1,323 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: 'PreludeWGL';
+}
+
+html {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body {
+    height: 100vh;
+    overflow: auto;
+}
+
+input:focus { outline: none; }
+
+.container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.popover::before {
+    display:none
+}
+
+.popover::after {
+    display:none
+}
+
+
+.btn-custom {
+	color: #fff;
+	background-color: #224158;
+}
+
+.btn-custom:hover {
+	background-color: #123148;
+}
+
+
+
+.default-degrade {
+	background: #224158; /* Old browsers */
+	background: -moz-linear-gradient(top, #224158 0%, #1a2834 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top, #224158 0%,#1a2834 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom, #224158 0%,#1a2834 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#224158', endColorstr='#1a2834',GradientType=0 ); /* IE6-9 */
+}
+
+
+
+
+
+
+
+
+
+
+
+.nav-drawer {
+	height: 100vh;
+	/*padding-top: 8%;*/
+	padding-left: 2em;
+
+	overflow: auto;
+}
+
+.nav-drawer img {
+	width: 80%;
+	cursor: pointer;
+}
+
+.drawer-element {
+	color: #82939e;
+	width: 100%;
+	padding-top: 0.8em;
+	padding-bottom: 0.8em;
+	transition: color 0.2s;
+	cursor: pointer;
+}
+
+.drawer-element:hover {
+	color: #eef1f0;
+}
+
+.drawer-element .active {
+	color: #eef1f0;
+}
+
+
+
+
+
+
+
+
+.nav-middle {
+	padding-top: 4%;
+
+	height: 100vh;
+	overflow: auto;
+}
+
+.mail {
+	width: 100%;
+	margin-top: 1em;
+	padding: 0.8em;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: background-color 0.1s;
+}
+
+.mail:hover {
+	background-color: #f8f8f8;
+}
+
+.mail-active {
+	background-color: #f8f8f8;
+}
+
+.mail .subject {
+	width: 100%;
+}
+
+.mail .subject .title {
+	font-family: 'Conv_PreludeWGL-Bold';
+	display: inline-block;
+	overflow: hidden;
+	height: 1.4em;
+}
+
+.mail .subject .date {
+	color: #7f7f7f;
+	text-align: right;
+	display: inline-block;
+	float: right;
+}
+
+.author {
+	padding-top: 0.4em;
+	padding-bottom: 0.4em;
+}
+
+.author .folder {
+	display: inline-block;
+}
+
+.mail .content {
+	color: #7f7f7f;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-height: 1.5em;
+	max-height: 3em;
+	overflow: hidden;
+}
+
+.mail img {
+	float: right;
+}
+
+
+
+
+
+.nav-third {
+	padding-left: 0;
+}
+
+
+.head {
+	padding-top: 1em;
+	width: 100%;
+}
+
+.head input {
+	float: right;
+	border: none;
+	width: 20em;
+	background-image: url('../img/search.svg');
+    background-position: 18em;
+	background-repeat: no-repeat;
+	border-radius: 20px;
+	background-color: #f8f8f8;
+	padding-top: 0.2em;
+	padding-bottom: 0.2em;
+	padding-left: 1em;
+	padding-right: 2.4em;
+	transition: background-image 0.1s, background-color 0.1s;
+}
+
+.head input:focus {
+	background-color: #eef1f2;
+	background-image: url('../img/search_b.svg');
+}
+
+.head img {
+	float: right;
+}
+
+.content {
+	overflow: auto;
+}
+
+
+
+.mail-content {
+	padding-top: 3em;
+	height: calc(100vh - 1em);
+	width: 100%;
+}
+
+.mail-content .header {
+	width: 100%;
+	height: 4em;
+}
+
+.mail-content .header .title {
+	font-family: 'Conv_PreludeWGL-Bold';
+	overflow: hidden;
+	height: 1.4em;
+	display: inline-block;
+}
+
+.mail-content .header .date {
+	color: #7f7f7f;
+	text-align: right;
+	float: right;
+}
+
+.mail-content .header .author .error {
+	font-size: 0.8em;
+	color: #fff;
+	background-color: #e74c3c;
+	margin-left: 1em;
+	padding: 0.2em 0.4em 0.2em 0.4em;
+	cursor: default;
+}
+
+.mail-content .header .attachement {
+	float: right;
+	cursor: pointer;
+}
+
+.mail-content .header .attachement img {
+	width: 20px;
+	margin-left: -6px;
+}
+
+.mail-content .inside {
+	height: calc(100% - 4em);
+}
+
+
+#mail-content-frame {
+	width: 100%;
+	height: calc(100% - 4px);
+	background-color: white;
+	border: 0;
+}
+
+
+
+
+
+
+#my-code-wrapper {
+	height: 100%;
+}
+
+
+
+
+
+
+.stick {
+	width: 0.8em;
+	height: 0.8em;
+	margin-right: 6px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.stick-peterriver {
+	background-color: #3498db;
+}
+
+.stick-emerald {
+	background-color: #2ecc71;
+}
+
+.stick-sunflower {
+	background-color: #f1c40f;
+}
+
+.stick-orange {
+	background-color: #f39c12;
+}
+
+.stick-alizarin {
+	background-color: #e74c3c;
+}
+
+.stick-concret {
+	background-color: #95a5a6;
+}
+
+.stick-amethyst {
+	background-color: #9b59b6;
+}
+
+.stick-turquoise {
+	background-color: #1abc9c;
+}
+
+.stick-wetasphalt {
+	background-color: #34495e;
+}

@@ -1,0 +1,24 @@
+#app-login {
+	font-family: 'Conv_PreludeWGL-Light';
+	color: #f8f8f8;
+}
+
+#user-text,#pass-text {
+	float: right;
+	border: none;
+	width: 100%;
+    background-position: 18em;
+	background-repeat: no-repeat;
+	border-radius: 20px;
+	background-color: rgba(248, 248, 248, 0.8);
+	padding-top: 0.2em;
+	padding-bottom: 0.2em;
+	padding-left: 1em;
+	padding-right: 2.4em;
+	transition: background-image 0.1s, background-color 0.1s;
+	margin-bottom: 0.5em;
+}
+
+#user-text:focus,#pass-text:focus {
+	background-color: #eef1f2;
+}
