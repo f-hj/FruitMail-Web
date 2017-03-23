@@ -21,6 +21,9 @@ var utils = {
 	escapeScripts: (str) => {
 		var regex = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
 		return regex.exec(str)
+	},
+	jq: str => {
+    return str.replace( /(:|\.|\[|\]|,|=|@|\(|\)|\ )/g, "\\$1" );
 	}
 }
 

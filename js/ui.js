@@ -115,7 +115,7 @@ var ui = {
 	},
 	setActiveFolder: (f) => {
 		$('.drawer-element span').removeClass('active')
-		$('#folder_' + f + ' span').addClass('active')
+		$('#folder_' + utils.jq(f) + ' span').addClass('active')
 	},
 	setCurrentMailsFolder: (f) => {
 		var mails = []
