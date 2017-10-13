@@ -1,11 +1,13 @@
 import React, { Component } from 'react'
 import logo from './logo.svg'
 import 'grommet/grommet.min.css'
+import './app.css'
 import axios from 'axios'
-
 import { Route } from 'react-router-dom'
+import Store from './store.js'
 
 import MailList from './maillist.js'
+import Mail from './mail.js'
 
 import GApp from 'grommet/components/App'
 import Split from 'grommet/components/Split'
@@ -19,16 +21,11 @@ import Footer from 'grommet/components/Footer'
 import Button from 'grommet/components/Button'
 import Heading from 'grommet/components/Heading'
 import TextInput from 'grommet/components/TextInput'
+import Search from 'grommet/components/Search'
 
 import UserIcon from 'grommet/components/icons/base/User'
+import ActionsIcon from 'grommet/components/icons/base/Actions'
 
-var instance = axios.create({
-  baseURL: 'https://mail-2.fruitice.fr',
-  timeout: 1000,
-  headers: {
-    'Authorization': 'Bearer ' + localStorage.getItem('token')
-  }
-});
 
 class App extends Component {
 
@@ -50,7 +47,7 @@ class App extends Component {
       window.location = "https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2FoauthCallback&client_id=test-localhost-3000"
     }
 
-    instance.get('/v2/folders').then(res => {
+    Store.instance.get('/v2/folders').then(res => {
       res.data.newP = res.data.new
       res.data.readP = res.data.read
       res.data.doneP = res.data.done
@@ -87,7 +84,7 @@ class App extends Component {
   render() {
     return (
       <GApp centered={false}>
-        <Split flex='right'>
+        <Split flex='right' priority='left'>
           <Sidebar colorIndex='neutral-1'>
             <Header pad='medium'
               justify='between'>
@@ -103,7 +100,7 @@ class App extends Component {
                 {
                   this.state.newP.map(folder => {
                     return (
-                      <Anchor label={`${folder.name} (${folder.count})`} path={'/new/' + folder.name} />
+                      <Anchor key={'new_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/new/' + folder.name} />
                     )
                   })
                 }
@@ -113,7 +110,7 @@ class App extends Component {
                 {
                   this.state.readP.map(folder => {
                     return (
-                      <Anchor label={`${folder.name} (${folder.count})`} path={'/read/' + folder.name} />
+                      <Anchor key={'read_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/read/' + folder.name} />
                     )
                   })
                 }
@@ -123,7 +120,7 @@ class App extends Component {
                 {
                   this.state.doneP.map(folder => {
                     return (
-                      <Anchor label={`${folder.name} (${folder.count})`} path={'/done/' + folder.name} />
+                      <Anchor key={'done_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/done/' + folder.name} />
                     )
                   })
                 }
@@ -133,13 +130,40 @@ class App extends Component {
               <Button icon={<UserIcon />} />
             </Footer>
           </Sidebar>
-          <Box>
-            <Split>
-              <Box>
-                <Route exact path='/:type/:folder' component={MailList} />
+          <Box full={true}>
+            <Header>
+              <Box flex={true}
+                justify='end'
+                direction='row'
+                separator='bottom'
+                pad='small'
+                responsive={false}>
+                <Search inline={true}
+                  fill={true}
+                  size='medium'
+                  placeHolder='Search'
+                  dropAlign={{"right": "right"}} />
+                <Menu icon={<ActionsIcon />}
+                  dropAlign={{"right": "right"}}>
+                  <Anchor href='#'
+                    className='active'>
+                    First
+                  </Anchor>
+                  <Anchor href='#'>
+                    Second
+                  </Anchor>
+                  <Anchor href='#'>
+                    Third
+                  </Anchor>
+                </Menu>
               </Box>
-              <Box>Second box</Box>
-            </Split>
+            </Header>
+            <Box>
+              <Split fixed={false} flex='right'>
+                <Route exact path='/:type/:folder/:id?' component={MailList} />
+                <Route exact path='/:type/:folder/:id?' component={Mail} />
+              </Split>
+            </Box>
           </Box>
         </Split>
       </GApp>
