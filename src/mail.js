@@ -11,7 +11,7 @@ class Mail extends Component {
     super(props)
 
     this.state = {
-      msg: {}
+      msg: null
     }
   }
 
@@ -19,28 +19,29 @@ class Mail extends Component {
     if (this.props.match.params.id === next.match.params.id && this.state.charged) {
       return
     }
+    Store.msgId = next.match.params.id
     this.setState({
-      msg: {},
+      msg: null,
       charged: true
     })
     Store.instance.get(`/msg/${next.match.params.id}`).then(res => {
       this.setState({
         msg: res.data
       })
+      if (!res.data.read) Store.instance.post(`/msg/${next.match.params.id}/setAsRead`)
     })
   }
 
-  componentDidUpdate() {
-    if (!this.state.msg || !this.state.msg.text) {
-      return
-    }
-    document.getElementById('iframe-mail-content').contentWindow.location = "about:blank"
+  componentDidUpdate () {
+    if (!this.state.msg) return
+    document.getElementById('iframe-mail-content').contentWindow.location = 'about:blank'
+    if (!this.state.msg.text) return
     setTimeout(() => {
       document.getElementById('iframe-mail-content').contentWindow.document.write(`
         <style>
-				body {
-					font-family: sans-serif;
-				}
+          body {
+            font-family: sans-serif;
+          }
         </style>
         <title>${this.state.msg.subject}</title>
         ` + (this.state.msg.html || ('<body>' + this.state.msg.text + '</body>')))
@@ -55,7 +56,7 @@ class Mail extends Component {
         </Box>
       )
     }
-    if (!this.state.msg || !this.state.msg.text) {
+    if (!this.state.msg) {
       return (
         <Box pad='large'>
           <Spinning size='large' />

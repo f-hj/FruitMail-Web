@@ -24,9 +24,8 @@ import TextInput from 'grommet/components/TextInput'
 import Search from 'grommet/components/Search'
 
 import UserIcon from 'grommet/components/icons/base/User'
-import ActionsIcon from 'grommet/components/icons/base/Actions'
 import PrintIcon from 'grommet/components/icons/base/Print'
-
+import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
 
 class App extends Component {
 
@@ -46,6 +45,7 @@ class App extends Component {
     console.log(localStorage.getItem('token'))
     if (localStorage.getItem('token') === null) {
       window.location = "https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%2FoauthCallback&client_id=mail-web"
+      return
     }
 
     Store.instance.get('/v2/folders').then(res => {
@@ -54,7 +54,6 @@ class App extends Component {
       res.data.doneP = res.data.done
       this.setState(res.data)
     })
-
   }
 
   searchChange (event) {
@@ -82,7 +81,7 @@ class App extends Component {
     this.setState(obj)
   }
 
-  render() {
+  render () {
     return (
       <GApp centered={false}>
         <Split flex='right' priority='left'>
@@ -152,19 +151,7 @@ class App extends Component {
                     document.getElementById('iframe-mail-content').contentWindow.print()
                     document.title = orig
                   }} />
-                <Menu icon={<ActionsIcon />}
-                  dropAlign={{"right": "right"}}>
-                  <Anchor href='#'
-                    className='active'>
-                    First
-                  </Anchor>
-                  <Anchor href='#'>
-                    Second
-                  </Anchor>
-                  <Anchor href='#'>
-                    Third
-                  </Anchor>
-                </Menu>
+                <Button icon={<CheckmarkIcon />} />
               </Box>
             </Header>
             <Box>

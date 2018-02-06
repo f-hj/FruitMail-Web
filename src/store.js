@@ -9,6 +9,7 @@ class Store {
       'Authorization': 'Bearer ' + localStorage.getItem('token')
     }
   })
+  @observable msgId = ''
 }
 
 export default new Store()
