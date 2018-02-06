@@ -35,7 +35,7 @@ class MailList extends Component {
   render () {
     return (
       <Box size={{width: 'large'}}>
-        <div style={{height: 'calc(100vh - 77px)', overflowY: 'scroll'}}>
+        <div style={{height: '100vh', overflowY: 'scroll'}}>
           <Box>
             {
               this.state.msgs.map(msg => {

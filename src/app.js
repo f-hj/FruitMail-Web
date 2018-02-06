@@ -131,29 +131,6 @@ class App extends Component {
             </Footer>
           </Sidebar>
           <Box full={true}>
-            <Header>
-              <Box flex={true}
-                justify='end'
-                direction='row'
-                separator='bottom'
-                pad='small'
-                responsive={false}>
-                <Search inline={true}
-                  fill={true}
-                  size='medium'
-                  placeHolder='Search'
-                  dropAlign={{"right": "right"}} />
-                <Button icon={<PrintIcon />}
-                  onClick={() => {
-                    let orig = document.title
-                    let title = document.getElementById('iframe-mail-content').contentDocument.title
-                    document.title = title.replace(/ /g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    document.getElementById('iframe-mail-content').contentWindow.print()
-                    document.title = orig
-                  }} />
-                <Button icon={<CheckmarkIcon />} />
-              </Box>
-            </Header>
             <Box>
               <Split fixed={false} flex='right'>
                 <Route exact path='/:type/:folder/:id?' component={MailList} />

@@ -5,6 +5,13 @@ import Box from 'grommet/components/Box'
 import Animate from 'grommet/components/Animate'
 import Spinning from 'grommet/components/icons/Spinning'
 
+import Header from 'grommet/components/Header'
+import Button from 'grommet/components/Button'
+import Title from 'grommet/components/Title'
+
+import PrintIcon from 'grommet/components/icons/base/Print'
+import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
+
 class Mail extends Component {
 
   constructor (props) {
@@ -64,11 +71,34 @@ class Mail extends Component {
       )
     }
     return (
-      <Animate style={{height: 'calc(100vh - 77px)'}} enter={{"animation": "fade", "duration": 400, "delay": 0}} leave={{"animation": "fade", "duration": 400, "delay": 0}} keep={true}>
-        <Box full='vertical' style={{height: 'calc(100vh - 77px)'}}>
-          <iframe id='iframe-mail-content'></iframe>
-        </Box>
-      </Animate>
+      <div>
+        <Header
+          separator='bottom'
+          pad='small'>
+          <Title>
+            {this.state.msg.subject}
+          </Title>
+          <Box flex={true}
+            justify='end'
+            direction='row'
+            responsive={false}>
+            <Button icon={<PrintIcon />}
+              onClick={() => {
+                let orig = document.title
+                let title = document.getElementById('iframe-mail-content').contentDocument.title
+                document.title = title.replace(/ /g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                document.getElementById('iframe-mail-content').contentWindow.print()
+                document.title = orig
+              }} />
+            <Button icon={<CheckmarkIcon />} />
+          </Box>
+        </Header>
+        <Animate style={{height: 'calc(100vh - 77px)'}} enter={{"animation": "fade", "duration": 400, "delay": 0}} leave={{"animation": "fade", "duration": 400, "delay": 0}} keep={true}>
+          <Box full='vertical' style={{height: 'calc(100vh - 77px)'}}>
+            <iframe id='iframe-mail-content'></iframe>
+          </Box>
+        </Animate>
+      </div>
     )
   }
 }
