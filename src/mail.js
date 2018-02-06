@@ -58,16 +58,26 @@ class Mail extends Component {
   render () {
     if (!this.props.match.params.id) {
       return (
-        <Box pad='small'>
-          No message selected
-        </Box>
+        <div>
+          <Header
+            separator='bottom'
+            pad='small' />
+          <Box pad='small'>
+            No message selected
+          </Box>
+        </div>
       )
     }
     if (!this.state.msg) {
       return (
-        <Box pad='large'>
-          <Spinning size='large' />
-        </Box>
+        <div>
+          <Header
+            separator='bottom'
+            pad='small' />
+          <Box pad='large'>
+            <Spinning size='large' />
+          </Box>
+        </div>
       )
     }
     return (
@@ -90,12 +100,18 @@ class Mail extends Component {
                 document.getElementById('iframe-mail-content').contentWindow.print()
                 document.title = orig
               }} />
-            <Button icon={<CheckmarkIcon />} />
+            <Button icon={<CheckmarkIcon />}
+              onClick={() => {
+                Store.instance.post(`/msg/${this.props.match.params.id}/setAsDone`)
+              }} />
           </Box>
         </Header>
-        <Animate style={{height: 'calc(100vh - 77px)'}} enter={{"animation": "fade", "duration": 400, "delay": 0}} leave={{"animation": "fade", "duration": 400, "delay": 0}} keep={true}>
+        <Animate style={{height: 'calc(100vh - 77px)'}}
+          enter={{animation: 'fade', duration: 400, delay: 0}}
+          leave={{animation: 'fade', duration: 400, delay: 0}}
+          keep={true}>
           <Box full='vertical' style={{height: 'calc(100vh - 77px)'}}>
-            <iframe id='iframe-mail-content'></iframe>
+            <iframe id='iframe-mail-content' />
           </Box>
         </Animate>
       </div>
