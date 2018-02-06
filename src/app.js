@@ -45,7 +45,7 @@ class App extends Component {
   componentWillMount () {
     console.log(localStorage.getItem('token'))
     if (localStorage.getItem('token') === null) {
-      window.location = "https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2FoauthCallback&client_id=test-localhost-3000"
+      window.location = "https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%3A3000%2FoauthCallback&client_id=mail-web"
     }
 
     Store.instance.get('/v2/folders').then(res => {
