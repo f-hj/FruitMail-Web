@@ -41,7 +41,8 @@ class Mail extends Component {
 				body {
 					font-family: sans-serif;
 				}
-				</style>
+        </style>
+        <title>${this.state.msg.subject}</title>
         ` + (this.state.msg.html || ('<body>' + this.state.msg.text + '</body>')))
     }, 0)
   }

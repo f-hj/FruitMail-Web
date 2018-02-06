@@ -25,6 +25,7 @@ import Search from 'grommet/components/Search'
 
 import UserIcon from 'grommet/components/icons/base/User'
 import ActionsIcon from 'grommet/components/icons/base/Actions'
+import PrintIcon from 'grommet/components/icons/base/Print'
 
 
 class App extends Component {
@@ -143,6 +144,14 @@ class App extends Component {
                   size='medium'
                   placeHolder='Search'
                   dropAlign={{"right": "right"}} />
+                <Button icon={<PrintIcon />}
+                  onClick={() => {
+                    let orig = document.title
+                    let title = document.getElementById('iframe-mail-content').contentDocument.title
+                    document.title = title.replace(/ /g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    document.getElementById('iframe-mail-content').contentWindow.print()
+                    document.title = orig
+                  }} />
                 <Menu icon={<ActionsIcon />}
                   dropAlign={{"right": "right"}}>
                   <Anchor href='#'
