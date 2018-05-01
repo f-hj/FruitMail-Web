@@ -44,8 +44,7 @@ class App extends Component {
   componentWillMount () {
     console.log(localStorage.getItem('token'))
     if (localStorage.getItem('token') === null) {
-      window.location = "https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%2FoauthCallback&client_id=mail-web"
-      return
+      return this.redirectToOauth()
     }
 
     Store.instance.get('/v2/folders').then(res => {
@@ -53,7 +52,14 @@ class App extends Component {
       res.data.readP = res.data.read
       res.data.doneP = res.data.done
       this.setState(res.data)
+    }).catch(err => {
+      if (err.response.data.err === 'invalid token') this.redirectToOauth()
+      console.log(err.response.data.err)
     })
+  }
+
+  redirectToOauth () {
+    window.location = 'https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%2FoauthCallback&client_id=mail-web'
   }
 
   searchChange (event) {
@@ -99,9 +105,7 @@ class App extends Component {
                 <Box pad='medium'><Heading tag='h3'>Fresh</Heading></Box>
                 {
                   this.state.newP.map(folder => {
-                    return (
-                      <Anchor key={'new_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/new/' + folder.name} />
-                    )
+                    return <SidebarItem type='new' folder={folder} />
                   })
                 }
               </Menu>
@@ -109,9 +113,7 @@ class App extends Component {
                 <Box pad='medium'><Heading tag='h3'>Read</Heading></Box>
                 {
                   this.state.readP.map(folder => {
-                    return (
-                      <Anchor key={'read_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/read/' + folder.name} />
-                    )
+                    return <SidebarItem type='read' folder={folder} />
                   })
                 }
               </Menu>
@@ -119,9 +121,7 @@ class App extends Component {
                 <Box pad='medium'><Heading tag='h3'>Done</Heading></Box>
                 {
                   this.state.doneP.map(folder => {
-                    return (
-                      <Anchor key={'done_' + folder.name} label={`${folder.name} (${folder.count})`} path={'/done/' + folder.name} />
-                    )
+                    return <SidebarItem type='done' folder={folder} />
                   })
                 }
               </Menu>
@@ -140,6 +140,20 @@ class App extends Component {
           </Box>
         </Split>
       </GApp>
+    )
+  }
+}
+
+class SidebarItem extends React.Component {
+  render () {
+    return (
+      <Anchor
+        key={this.props.type + '_' + this.props.folder.name}
+        label={`${this.props.folder.name} (${this.props.folder.count})`}
+        path={'/' + this.props.type + '/' + this.props.folder.name}>
+        <span>{`${this.props.folder.name}`}</span>
+        <span style={{float: 'right', fontWeight: 200}}>{`${this.props.folder.count}`}</span>
+      </Anchor>
     )
   }
 }

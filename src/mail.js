@@ -13,7 +13,6 @@ import PrintIcon from 'grommet/components/icons/base/Print'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
 
 class Mail extends Component {
-
   constructor (props) {
     super(props)
 
