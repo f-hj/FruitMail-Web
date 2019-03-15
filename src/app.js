@@ -8,6 +8,7 @@ import Store from './store.js'
 
 import MailList from './maillist.js'
 import Mail from './mail.js'
+import WriteMail from './writeMail.js'
 
 import GApp from 'grommet/components/App'
 import Split from 'grommet/components/Split'
@@ -22,15 +23,20 @@ import Button from 'grommet/components/Button'
 import Heading from 'grommet/components/Heading'
 import TextInput from 'grommet/components/TextInput'
 import Search from 'grommet/components/Search'
+import Layer from 'grommet/components/Layer'
 
 import UserIcon from 'grommet/components/icons/base/User'
 import PrintIcon from 'grommet/components/icons/base/Print'
+import NewIcon from 'grommet/components/icons/base/New'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
+
+const queryString = require('query-string')
 
 class App extends Component {
 
   constructor (props) {
     super(props)
+
     this.state = {
       new: [],
       read: [],
@@ -56,10 +62,23 @@ class App extends Component {
       if (err.response.data.err === 'invalid token') this.redirectToOauth()
       console.log(err.response.data.err)
     })
+
+    Store.instance.get('/userConfig').then(res => {
+      Store.user = res.data
+    })
+  }
+  
+  writeMail () {
+    // push history
   }
 
   redirectToOauth () {
-    window.location = 'https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%2FoauthCallback&client_id=mail-web'
+    if (window.location.hostname === 'localhost') {
+      window.location = 'https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=http%3A%2F%2Flocalhost:3000%2FoauthCallback&client_id=test-localhost-3000'
+    
+    } else {
+      window.location = 'https://auth.fruitice.fr/oauth/interface?response_type=token&scope=infos%20mails&redirect_uri=https%3A%2F%2Fmail.fruitice.fr%2FoauthCallback&client_id=mail-web'
+    }
   }
 
   searchChange (event) {
@@ -97,6 +116,7 @@ class App extends Component {
               <Title>
                 Fruit'mail
               </Title>
+              <Anchor icon={<NewIcon />} path='/writeMail' />
             </Header>
             <Box flex='grow'
               justify='start'>
@@ -132,6 +152,7 @@ class App extends Component {
           </Sidebar>
           <Box full={true}>
             <Box>
+              <Route exact path='/writeMail' component={WriteMail} />
               <Split fixed={false} flex='right'>
                 <Route exact path='/:type/:folder/:id?' component={MailList} />
                 <Route exact path='/:type/:folder/:id?' component={Mail} />
