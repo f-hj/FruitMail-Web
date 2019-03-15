@@ -1,0 +1,15 @@
+{
+  "short_name": "Fruit'mail",
+  "name": "Fruit'ice mail service",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#0a64a0"
+}
