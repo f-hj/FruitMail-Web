@@ -30,8 +30,6 @@ import PrintIcon from 'grommet/components/icons/base/Print'
 import NewIcon from 'grommet/components/icons/base/New'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
 
-const queryString = require('query-string')
-
 class App extends Component {
 
   constructor (props) {
@@ -152,7 +150,7 @@ class App extends Component {
           </Sidebar>
           <Box full={true}>
             <Box>
-              <Route exact path='/writeMail' component={WriteMail} />
+              <Route exact path='/writeMail/:inReplyTo?' component={WriteMail} />
               <Split fixed={false} flex='right'>
                 <Route exact path='/:type/:folder/:id?' component={MailList} />
                 <Route exact path='/:type/:folder/:id?' component={Mail} />
