@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import Store from './store.js'
 
+import Anchor from 'grommet/components/Anchor'
 import Box from 'grommet/components/Box'
 import Animate from 'grommet/components/Animate'
 import Spinning from 'grommet/components/icons/Spinning'
@@ -11,6 +12,7 @@ import Title from 'grommet/components/Title'
 
 import PrintIcon from 'grommet/components/icons/base/Print'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
+import NewIcon from 'grommet/components/icons/base/New'
 
 class Mail extends Component {
   constructor (props) {
@@ -91,6 +93,7 @@ class Mail extends Component {
             justify='end'
             direction='row'
             responsive={false}>
+            <Anchor icon={<NewIcon />} path={'/writeMail/?replyToMsg=' + this.state.msg.id} />
             <Button icon={<PrintIcon />}
               onClick={() => {
                 let orig = document.title

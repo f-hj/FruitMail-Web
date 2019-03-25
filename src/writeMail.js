@@ -18,10 +18,40 @@ class ModalMail extends Component {
   constructor (props) {
     super(props)
 
+    const params = new URLSearchParams(this.props.location.search)
+
     this.state = {
       from: Store.defaultMail,
-      confirm: false
+      confirm: false,
+      to: params.get('to')
     }
+
+    if (params.get('replyToMsg')) {
+      this.getOldMessage(params.get('replyToMsg'))
+    }
+  }
+
+  getOldMessage (id) {
+    Store.instance.get(`/msg/${id}`).then(res => {
+      const msg = res.data
+      this.setState({
+        from: msg.to[0].address,
+        to: msg.envelopeFrom.address,
+        inReplyTo: msg.messageId,
+        subject: `RE: ${msg.subject}`,
+        markdown: `
+
+
+---
+
+**From:** ${msg.envelopeFrom.address}
+
+**To:** ${msg.to.map(to => to.address).join(', ')}
+
+${msg.text}
+`
+      })
+    })
   }
 
   confirmModal () {
@@ -40,11 +70,16 @@ class ModalMail extends Component {
 
   prepareObj () {
     return {
-      from: this.state.from,
+      from: {
+        address: this.state.from,
+        name: Store.user.defaultName
+      },
       to: this.state.to,
       cc: this.state.cc,
       subject: this.state.subject,
-      markdown: this.state.content
+      inReplyTo: this.state.inReplyTo,
+      references: [ this.state.inReplyTo ],
+      markdown: this.state.markdown
     }
   }
 
@@ -60,15 +95,16 @@ class ModalMail extends Component {
             <Heading tag='h1'>Write a mail</Heading>
             <Box pad={{ vertical: 'small' }}>
               <FormField label='From'><TextInput value={this.state.from} onDOMChange={e => this.handle('from', e)} /></FormField>
-              <FormField label='To'><TextInput onDOMChange={e => this.handle('to', e)} /></FormField>
-              <FormField label='Cc'><TextInput onDOMChange={e => this.handle('cc', e)} /></FormField>
+              <FormField label='To'><TextInput value={this.state.to} onDOMChange={e => this.handle('to', e)} /></FormField>
+              <FormField label='Cc'><TextInput value={this.state.cc} onDOMChange={e => this.handle('cc', e)} /></FormField>
+              <FormField label='InReplyTo'><TextInput value={this.state.inReplyTo} onDOMChange={e => this.handle('inReplyTo', e)} /></FormField>
             </Box>
             <Box pad={{ vertical: 'small' }}>
-              <FormField label='Subject'><TextInput onDOMChange={e => this.handle('subject', e)} /></FormField>
+              <FormField label='Subject'><TextInput value={this.state.subject} onDOMChange={e => this.handle('subject', e)} /></FormField>
             </Box>
             <Box pad={{ vertical: 'small' }}>
               <FormField label='Content'>
-                <textarea onChange={e => this.handle('content', e)} />
+                <textarea value={this.state.markdown} onChange={e => this.handle('markdown', e)} />
               </FormField>
             </Box>
             <FormField>
@@ -83,7 +119,7 @@ class ModalMail extends Component {
           <Form pad={{vertical: 'large'}} plain={true}>
             <Heading tag='h1'>Confirmation</Heading>
             <Box colorIndex='light-2' pad='small' margin={{ vertical: 'small' }} size='xxlarge'>
-              <Markdown content={this.state.content} />
+              <Markdown content={this.state.markdown} />
             </Box>
             <Box colorIndex='light-2' pad='small' margin={{ vertical: 'small' }} size='xxlarge'>
               <pre>{JSON.stringify(this.prepareObj(), null, 2)}</pre>
