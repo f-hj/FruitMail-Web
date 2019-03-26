@@ -37,6 +37,7 @@ class ModalMail extends Component {
       this.setState({
         from: msg.to[0].address,
         to: msg.envelopeFrom.address,
+        cc: msg.cc,
         inReplyTo: msg.messageId,
         subject: `RE: ${msg.subject}`,
         markdown: `
