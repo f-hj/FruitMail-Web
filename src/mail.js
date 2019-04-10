@@ -9,10 +9,12 @@ import Spinning from 'grommet/components/icons/Spinning'
 import Header from 'grommet/components/Header'
 import Button from 'grommet/components/Button'
 import Title from 'grommet/components/Title'
+import Menu from 'grommet/components/Menu'
 
 import PrintIcon from 'grommet/components/icons/base/Print'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
 import NewIcon from 'grommet/components/icons/base/New'
+import AttachmentIcon from 'grommet/components/icons/base/Attachment'
 
 class Mail extends Component {
   constructor (props) {
@@ -104,9 +106,25 @@ class Mail extends Component {
               }} />
             <Button icon={<CheckmarkIcon />}
               onClick={() => {
-                Store.instance.post(`/msg/${this.props.match.params.id}/setAsDone`)
+                Store.instance.post(`/msg/${this.props.match.params.id}/setAsDone`).then(_ => {
+                  Store.getFolders()
+                  Store.getMails()
+                })
               }} />
           </Box>
+          { this.state.msg.attachments.length > 0 ? (
+            <Menu icon={<AttachmentIcon />}>
+              {
+                this.state.msg.attachments.map(att => {
+                  return (
+                    <Anchor href={`${Store.server}/attachment/${this.state.msg.id}/${att.contentId}?token=${window.localStorage.getItem('token')}`}>
+                      { att.fileName }
+                    </Anchor>
+                  )
+                })
+              }
+            </Menu>
+          ) : null }
         </Header>
         <Animate style={{height: 'calc(100vh - 77px)'}}
           enter={{animation: 'fade', duration: 400, delay: 0}}

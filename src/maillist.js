@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import Store from './store.js'
+import { observer } from 'mobx-react'
 
 import Card from 'grommet/components/Card'
 import Box from 'grommet/components/Box'
@@ -8,12 +9,12 @@ import Anchor from 'grommet/components/Anchor'
 import Heading from 'grommet/components/Heading'
 import Timestamp from 'grommet/components/Timestamp'
 
+@observer
 class MailList extends Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      msgs: [],
       charged: false,
       loading: false
     }
@@ -27,12 +28,7 @@ class MailList extends Component {
       msgs: [],
       charged: true
     })
-    Store.instance.get(`/msgs/${next.match.params.type}/${next.match.params.folder}?nb=15&direction=past`).then(res => {
-      this.setState({
-        msgs: res.data
-      })
-    })
-    console.log(Store.instance.defaults.headers)
+    Store.getMails(next.match.params.type, next.match.params.folder)
   }
 
   infiniteScroll (node) {
@@ -43,10 +39,8 @@ class MailList extends Component {
         if (!this.state.loading && parseInt(domNode.scrollHeight - domNode.scrollTop - domNode.offsetHeight, 10) === 0) {
           this.setState({ loading: true })
           console.log('Get new')
-          Store.instance.get(`/msgs/${this.props.match.params.type}/${this.props.match.params.folder}?nb=15&direction=past&from=${this.state.msgs[this.state.msgs.length - 1].date}`).then(res => {
-            this.state.msgs.push(...res.data)
+          Store.getMails(this.props.match.params.type, this.props.match.params.folder, true).then(_ => {
             this.setState({
-              msgs: this.state.msgs,
               loading: false
             })
           }).catch(err => {
@@ -64,7 +58,7 @@ class MailList extends Component {
         <div style={{height: '100vh', overflowY: 'scroll'}} ref={this.infiniteScroll.bind(this)}>
           <Box>
             {
-              this.state.msgs.map(msg => {
+              Store.currentFolderMails.map(msg => {
                 let from = ''
                 msg.from.forEach(f => {
                   from += (f.name || f.address) + ' '

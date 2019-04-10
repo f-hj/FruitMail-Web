@@ -5,6 +5,7 @@ import './app.css'
 import axios from 'axios'
 import { Route } from 'react-router-dom'
 import Store from './store.js'
+import { observer } from 'mobx-react'
 
 import MailList from './maillist.js'
 import Mail from './mail.js'
@@ -30,33 +31,15 @@ import PrintIcon from 'grommet/components/icons/base/Print'
 import NewIcon from 'grommet/components/icons/base/New'
 import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
 
+@observer
 class App extends Component {
-
-  constructor (props) {
-    super(props)
-
-    this.state = {
-      new: [],
-      read: [],
-      done: [],
-      newP: [],
-      readP: [],
-      doneP: []
-    }
-  }
-
   componentWillMount () {
     console.log(localStorage.getItem('token'))
     if (localStorage.getItem('token') === null) {
       return this.redirectToOauth()
     }
 
-    Store.instance.get('/v2/folders').then(res => {
-      res.data.newP = res.data.new
-      res.data.readP = res.data.read
-      res.data.doneP = res.data.done
-      this.setState(res.data)
-    }).catch(err => {
+    Store.getFolders().catch(err => {
       if (err.response.data.err === 'invalid token') this.redirectToOauth()
       console.log(err.response.data.err)
     })
@@ -86,17 +69,17 @@ class App extends Component {
       readP: [],
       doneP: []
     }
-    this.state.new.forEach(folder => {
+    Store.folders.new.forEach(folder => {
       if (folder.name.indexOf(d) !== -1) {
         obj.newP.push(folder)
       }
     })
-    this.state.read.forEach(folder => {
+    Store.folders.read.forEach(folder => {
       if (folder.name.indexOf(d) !== -1) {
         obj.readP.push(folder)
       }
     })
-    this.state.done.forEach(folder => {
+    Store.folders.done.forEach(folder => {
       if (folder.name.indexOf(d) !== -1) {
         obj.doneP.push(folder)
       }
@@ -122,7 +105,7 @@ class App extends Component {
               <Menu primary={true}>
                 <Box pad='medium'><Heading tag='h3'>Fresh</Heading></Box>
                 {
-                  this.state.newP.map(folder => {
+                  Store.folders.newP.map(folder => {
                     return <SidebarItem type='new' folder={folder} />
                   })
                 }
@@ -130,7 +113,7 @@ class App extends Component {
               <Menu primary={true}>
                 <Box pad='medium'><Heading tag='h3'>Read</Heading></Box>
                 {
-                  this.state.readP.map(folder => {
+                  Store.folders.readP.map(folder => {
                     return <SidebarItem type='read' folder={folder} />
                   })
                 }
@@ -138,7 +121,7 @@ class App extends Component {
               <Menu primary={true}>
                 <Box pad='medium'><Heading tag='h3'>Done</Heading></Box>
                 {
-                  this.state.doneP.map(folder => {
+                  Store.folders.doneP.map(folder => {
                     return <SidebarItem type='done' folder={folder} />
                   })
                 }
