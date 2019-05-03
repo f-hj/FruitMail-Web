@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
 import 'grommet/grommet.min.css'
 import './app.css'
-import axios from 'axios'
 import { Route } from 'react-router-dom'
 import Store from './store.js'
 import { observer } from 'mobx-react'
@@ -23,13 +21,10 @@ import Footer from 'grommet/components/Footer'
 import Button from 'grommet/components/Button'
 import Heading from 'grommet/components/Heading'
 import TextInput from 'grommet/components/TextInput'
-import Search from 'grommet/components/Search'
-import Layer from 'grommet/components/Layer'
 
 import UserIcon from 'grommet/components/icons/base/User'
-import PrintIcon from 'grommet/components/icons/base/Print'
 import NewIcon from 'grommet/components/icons/base/New'
-import CheckmarkIcon from 'grommet/components/icons/base/Checkmark'
+import RefreshIcon from 'grommet/components/icons/base/Refresh'
 
 @observer
 class App extends Component {
@@ -40,6 +35,10 @@ class App extends Component {
     }
 
     Store.getFolders().catch(err => {
+      if (!err.response) {
+        // TODO: show notification (no connection)
+        return
+      }
       if (err.response.data.err === 'invalid token') this.redirectToOauth()
       console.log(err.response.data.err)
     })
@@ -84,7 +83,9 @@ class App extends Component {
         obj.doneP.push(folder)
       }
     })
-    this.setState(obj)
+    Store.folders.newP = obj.newP
+    Store.folders.readP = obj.readP
+    Store.folders.doneP = obj.doneP
   }
 
   render () {
@@ -97,11 +98,16 @@ class App extends Component {
               <Title>
                 Fruit'mail
               </Title>
-              <Anchor icon={<NewIcon />} path='/writeMail' />
+              <div>
+                <Anchor icon={<NewIcon />} path='/writeMail' />
+                <Button onClick={Store.getFolders}><Heading tag='h5'><RefreshIcon /></Heading></Button>
+              </div>
             </Header>
             <Box flex='grow'
               justify='start'>
-              <Box pad='medium'><TextInput placeHolder='Folder' onDOMChange={this.searchChange.bind(this)} /></Box>
+              <Box pad='medium'>
+                <TextInput placeHolder='Folder' onDOMChange={this.searchChange.bind(this)} />
+              </Box>
               <Menu primary={true}>
                 <Box pad='medium'><Heading tag='h3'>Fresh</Heading></Box>
                 {

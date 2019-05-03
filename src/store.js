@@ -7,7 +7,7 @@ class Store {
   @observable server = server
   @observable instance = axios.create({
     baseURL: server,
-    timeout: 4000,
+    timeout: 12000,
     headers: {
       'Authorization': 'Bearer ' + localStorage.getItem('token')
     }
@@ -15,12 +15,16 @@ class Store {
   @observable msgId = ''
   @observable user = {}
 
+  @observable isGettingFolders = false
   @action getFolders = _ => {
+    this.isGettingFolders = true
     return this.instance.get('/v2/folders').then(res => {
       res.data.newP = res.data.new
       res.data.readP = res.data.read
-      res.data.doneP = res.data.done
+      res.data.doneP = res.data.done 
       this.folders = res.data
+
+      this.isGettingFolders = false
     })
   }
   @observable folders = {

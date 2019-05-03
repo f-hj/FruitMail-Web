@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import Store from './store.js'
 import { observer } from 'mobx-react'
 
-import Card from 'grommet/components/Card'
 import Box from 'grommet/components/Box'
 import Anchor from 'grommet/components/Anchor'
 import Heading from 'grommet/components/Heading'
