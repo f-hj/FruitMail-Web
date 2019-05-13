@@ -108,30 +108,35 @@ class App extends Component {
               <Box pad='medium'>
                 <TextInput placeHolder='Folder' onDOMChange={this.searchChange.bind(this)} />
               </Box>
-              <Menu primary={true}>
-                <Box pad='medium'><Heading tag='h3'>Fresh</Heading></Box>
-                {
-                  Store.folders.newP.map(folder => {
-                    return <SidebarItem type='new' folder={folder} />
-                  })
-                }
-              </Menu>
-              <Menu primary={true}>
-                <Box pad='medium'><Heading tag='h3'>Read</Heading></Box>
-                {
-                  Store.folders.readP.map(folder => {
-                    return <SidebarItem type='read' folder={folder} />
-                  })
-                }
-              </Menu>
-              <Menu primary={true}>
-                <Box pad='medium'><Heading tag='h3'>Done</Heading></Box>
-                {
-                  Store.folders.doneP.map(folder => {
-                    return <SidebarItem type='done' folder={folder} />
-                  })
-                }
-              </Menu>
+              <Box pad='medium'>
+                <Box pad='small'></Box>
+                <Menu primary={true}>
+                  <Heading tag='h3'>Fresh</Heading>
+                  {
+                    Store.folders.newP.map(folder => {
+                      return <SidebarItem type='new' folder={folder} />
+                    })
+                  }
+                </Menu>
+                <Box pad='small'></Box>
+                <Menu primary={true}>
+                  <Heading tag='h3'>Read</Heading>
+                  {
+                    Store.folders.readP.map(folder => {
+                      return <SidebarItem type='read' folder={folder} />
+                    })
+                  }
+                </Menu>
+                <Box pad='small'></Box>
+                <Menu primary={true}>
+                  <Heading tag='h3'>Done</Heading>
+                  {
+                    Store.folders.doneP.map(folder => {
+                      return <SidebarItem type='done' folder={folder} />
+                    })
+                  }
+                </Menu>
+              </Box>
             </Box>
             <Footer pad='medium'>
               <Button icon={<UserIcon />} />
