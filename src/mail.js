@@ -131,7 +131,7 @@ class Mail extends Component {
           leave={{animation: 'fade', duration: 400, delay: 0}}
           keep={true}>
           <Box full='vertical' style={{height: 'calc(100vh - 77px)'}}>
-            <iframe id='iframe-mail-content' title='Mail Content' />
+            <iframe id='iframe-mail-content' title='Mail Content' sandbox='allow-same-origin' />
           </Box>
         </Animate>
       </div>
