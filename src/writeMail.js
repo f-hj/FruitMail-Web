@@ -13,6 +13,8 @@ import Markdown from 'grommet/components/Markdown'
 import Store from './store.js'
 import { observer } from 'mobx-react'
 
+import FileBase64 from 'react-file-base64'
+
 @observer
 class ModalMail extends Component {
   constructor (props) {
@@ -23,7 +25,8 @@ class ModalMail extends Component {
     this.state = {
       from: Store.defaultMail,
       confirm: false,
-      to: params.get('to')
+      to: params.get('to'),
+      files: []
     }
 
     if (params.get('replyToMsg')) {
@@ -80,12 +83,23 @@ ${msg.text}
       subject: this.state.subject,
       inReplyTo: this.state.inReplyTo,
       references: [ this.state.inReplyTo ],
-      markdown: this.state.markdown
+      markdown: this.state.markdown,
+      attachments: this.state.files.map(file => {
+        return {
+          encoding: 'base64',
+          filename: file.name,
+          content: file.base64.split(',')[1]
+        }
+      })
     }
   }
 
   sendMail () {
     Store.instance.post('/msg', this.prepareObj())
+  }
+
+  getFiles (files) {
+    this.setState({ files })
   }
 
   render () {
@@ -111,6 +125,8 @@ ${msg.text}
             <FormField>
               <CheckBox label='Add tracking pixel' />
             </FormField>
+            <p></p>
+            <FileBase64 multiple={true} onDone={this.getFiles.bind(this)} />
             <p></p>
             <Button label='Check before send' onClick={this.confirmModal.bind(this)}></Button>
           </Form>
