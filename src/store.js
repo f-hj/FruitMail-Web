@@ -1,7 +1,7 @@
 import { observable, action, computed } from 'mobx'
 import axios from 'axios'
 
-const server = 'https://mail-2.fruitice.fr'
+const server = 'https://mail-server.fruitice.fr'
 
 class Store {
   @observable server = server
