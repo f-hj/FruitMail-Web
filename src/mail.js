@@ -88,9 +88,16 @@ class Mail extends Component {
         <Header
           separator='bottom'
           pad='small'>
-          <Title>
-            {this.state.msg.subject}
-          </Title>
+          <Box direction='column'>
+            <Title>
+              {this.state.msg.subject}
+            </Title>
+            {
+              this.state.msg.from != undefined && this.state.msg.from.length > 0 && (
+                <span>From: {this.state.msg.from[0].name ? this.state.msg.from[0].name : 'Unknown'} &#60;{this.state.msg.from[0].address ? this.state.msg.from[0].address : 'Unknown'}&#62;</span>
+              )
+            }
+          </Box>
           <Box flex={true}
             justify='end'
             direction='row'

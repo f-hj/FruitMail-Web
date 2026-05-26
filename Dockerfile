@@ -1,16 +1,16 @@
-FROM node:10.4 as BUILDER
-
-ADD . /fruitmail-web
+FROM node:24-alpine AS builder
 
 WORKDIR /fruitmail-web
 
-RUN yarn
+COPY package.json yarn.lock* ./
+RUN yarn install --frozen-lockfile || yarn install
+
+COPY . .
 RUN yarn build
 
-FROM nginx:1.15-alpine
+FROM nginx:1.27-alpine
 
-# Copy site file
-COPY --from=BUILDER /fruitmail-web/build /usr/share/nginx/html
+COPY --from=builder /fruitmail-web/build /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-CMD [ "nginx", "-g", "daemon off;" ]
+CMD ["nginx", "-g", "daemon off;"]

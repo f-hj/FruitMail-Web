@@ -60,7 +60,7 @@ class MailList extends Component {
               Store.currentFolderMails.map(msg => {
                 let from = ''
                 msg.from.forEach(f => {
-                  from += (f.name || f.address) + ' '
+                  from += `${f.name ? f.name : 'Unknown'} <${f.address ? f.address : 'Unknown'}> `
                 })
                 return (
                   <Box key={msg.id} margin='small'>
