@@ -7,6 +7,10 @@ import Callback from './Callback'
 import MailLayout from './MailLayout'
 import WriteMail from './WriteMail'
 
+import '@fontsource/atkinson-hyperlegible/400.css'
+import '@fontsource/atkinson-hyperlegible/400-italic.css'
+import '@fontsource/atkinson-hyperlegible/700.css'
+import '@fontsource/atkinson-hyperlegible/700-italic.css'
 import './styles.css'
 
 const rootElement = document.getElementById('root')

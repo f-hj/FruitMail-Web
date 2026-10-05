@@ -12,6 +12,7 @@
     "generate:api": "openapi-ts"
   },
   "dependencies": {
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
     "mobx": "^7.0.6",
     "mobx-react-lite": "^5.1.0",
     "react": "^19.3.0",

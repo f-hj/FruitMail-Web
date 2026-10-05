@@ -37,7 +37,7 @@ function printMessage(msg: Mail): void {
   doc.open()
   doc.write(
     `<!doctype html><html><head><title>${escapeHtml(msg.subject || 'mail')}</title>` +
-      '<style>body{font-family:sans-serif}pre.plain{white-space:pre-wrap;font-family:sans-serif}</style>' +
+      '<style>body{font-family:\'Atkinson Hyperlegible\',sans-serif}pre.plain{white-space:pre-wrap;font-family:inherit}</style>' +
       `</head><body>${body}</body></html>`,
   )
   doc.close()
