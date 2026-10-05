@@ -1,20 +1,23 @@
+import { IconButton, Loading, OverflowMenu, OverflowMenuItem, Tag, Tooltip } from '@carbon/react'
+import { Attachment, Checkmark, Printer, Reply, Security } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { attachmentUrl, handleApiError, messageViewUrl } from './api'
 import { mailsControllerApplyAction, mailsControllerGetMessage } from './client'
 import { escapeHtml, formatAddresses } from './format'
-import { AttachmentIcon, CheckIcon, PrintIcon, ReplyIcon, ShieldIcon } from './icons'
-import {
-  bimiBadge,
-  bimiLogoDataUrl,
-  dkimBadge,
-  dmarcBadge,
-  spfBadge,
-  tlsBadge,
-} from './security'
+import { bimiBadge, bimiLogoDataUrl, dkimBadge, dmarcBadge, spfBadge, tlsBadge } from './security'
+import type { BadgeStatus } from './security'
 import store, { type Mail } from './store'
+
+/** Carbon Tag colors per badge status; `warn` has no Tag color and is styled via CSS. */
+const TAG_TYPES: Record<BadgeStatus, 'green' | 'red' | 'gray'> = {
+  ok: 'green',
+  warn: 'gray',
+  bad: 'red',
+  none: 'gray',
+}
 
 /**
  * Prints the body of a message through a transient same-origin iframe
@@ -64,16 +67,15 @@ function printMessage(msg: Mail): void {
 /** Header + body of the selected message. */
 const MailView = observer(function MailView() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [msg, setMsg] = useState<Mail | null>(null)
   const [failed, setFailed] = useState(false)
-  const [showAttachments, setShowAttachments] = useState(false)
   // kept open across messages on purpose, to compare details while browsing
   const [showDetails, setShowDetails] = useState(false)
 
   useEffect(() => {
     setMsg(null)
     setFailed(false)
-    setShowAttachments(false)
     if (!id) {
       return
     }
@@ -148,7 +150,7 @@ const MailView = observer(function MailView() {
       <div className="mail-view">
         <header className="mail-view-header" />
         <div className="mail-view-placeholder">
-          <span className="spinner" />
+          <Loading small withOverlay={false} description="Loading message" />
         </div>
       </div>
     )
@@ -177,90 +179,87 @@ const MailView = observer(function MailView() {
           </span>
         </div>
         <div className="mail-view-actions">
-          <button
-            type="button"
-            className="icon-button"
-            title="Message details"
+          <IconButton
+            kind="ghost"
+            size="sm"
+            align="bottom-end"
+            label="Message details"
             aria-expanded={showDetails}
             aria-controls="mail-details"
             onClick={() => setShowDetails((value) => !value)}
           >
-            <ShieldIcon />
-          </button>
-          <Link
-            className="icon-button"
-            to={`/writeMail?replyToMsg=${encodeURIComponent(msg.id)}`}
-            title="Reply"
+            <Security />
+          </IconButton>
+          <IconButton
+            kind="ghost"
+            size="sm"
+            align="bottom-end"
+            label="Reply"
+            onClick={() => navigate(`/writeMail?replyToMsg=${encodeURIComponent(msg.id)}`)}
           >
-            <ReplyIcon />
-          </Link>
-          <button
-            type="button"
-            className="icon-button"
-            title="Print"
+            <Reply />
+          </IconButton>
+          <IconButton
+            kind="ghost"
+            size="sm"
+            align="bottom-end"
+            label="Print"
             onClick={() => printMessage(msg)}
           >
-            <PrintIcon />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            title="Mark as done"
+            <Printer />
+          </IconButton>
+          <IconButton
+            kind="ghost"
+            size="sm"
+            align="bottom-end"
+            label="Mark as done"
             onClick={markAsDone}
           >
-            <CheckIcon />
-          </button>
+            <Checkmark />
+          </IconButton>
           {attachments.length > 0 && (
-            <div className="attachments">
-              <button
-                type="button"
-                className="icon-button"
-                title="Attachments"
-                onClick={() => setShowAttachments((value) => !value)}
-              >
-                <AttachmentIcon />
-                <span className="attachments-count">{attachments.length}</span>
-              </button>
-              {showAttachments && (
-                <>
-                  <div
-                    className="attachments-backdrop"
-                    onClick={() => setShowAttachments(false)}
-                  />
-                  <ul className="attachments-menu">
-                    {attachments.map((attachment, index) => (
-                      <li key={attachment.contentId ?? index}>
-                        <a
-                          href={attachmentUrl(msg.id, attachment.contentId ?? '')}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {attachment.fileName || attachment.contentId || 'attachment'}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
+            <OverflowMenu
+              size="sm"
+              align="bottom-end"
+              renderIcon={Attachment}
+              iconDescription={`Attachments (${attachments.length})`}
+              aria-label={`Attachments (${attachments.length})`}
+            >
+              {attachments.map((attachment, index) => (
+                <OverflowMenuItem
+                  key={attachment.contentId ?? index}
+                  itemText={attachment.fileName || attachment.contentId || 'attachment'}
+                  href={attachmentUrl(msg.id, attachment.contentId ?? '')}
+                  // opens in a new tab; the props type does not declare anchor
+                  // attributes even though they are spread onto the link
+                  {...{ target: '_blank', rel: 'noreferrer' }}
+                />
+              ))}
+            </OverflowMenu>
           )}
         </div>
       </header>
       {showDetails && (
         <div className="mail-details" id="mail-details">
           {badges.map((badge) => (
-            <span key={badge.key} className="tooltip" tabIndex={0}>
-              <span className={`badge ${badge.status}`}>
+            <Tooltip
+              key={badge.key}
+              align="bottom-start"
+              label={<span className="badge-tooltip">{badge.tooltip}</span>}
+            >
+              <Tag
+                className={`badge-tag badge-tag--${badge.status}`}
+                type={TAG_TYPES[badge.status]}
+                size="sm"
+                tabIndex={0}
+              >
                 {badge.key === 'bimi' && logoUrl && (
                   <img className="badge-logo" src={logoUrl} alt="" />
                 )}
                 <span className="badge-label">{badge.label}</span>
                 <span className="badge-value">{badge.value}</span>
-              </span>
-              <span className="tooltip-content" role="tooltip">
-                {badge.tooltip}
-              </span>
-            </span>
+              </Tag>
+            </Tooltip>
           ))}
         </div>
       )}

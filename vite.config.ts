@@ -5,6 +5,15 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // deprecation warnings emitted by Carbon's own SCSS (@carbon/motion),
+        // which we cannot fix from here
+        silenceDeprecations: ['if-function'],
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),

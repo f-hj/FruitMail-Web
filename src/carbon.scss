@@ -1,0 +1,8 @@
+// Carbon Design System styles (White theme, the v11 default).
+//
+// The IBM Plex @font-face declarations are disabled so no Plex font files are
+// downloaded or bundled: the app uses Atkinson Hyperlegible for accessibility,
+// which replaces Plex via a CSS override in styles.css.
+@use '@carbon/styles' with (
+  $css--font-face: false
+);

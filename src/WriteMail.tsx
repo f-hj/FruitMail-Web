@@ -1,3 +1,14 @@
+import {
+  Button,
+  CodeSnippet,
+  FileUploaderButton,
+  FileUploaderItem,
+  InlineNotification,
+  Modal,
+  TextArea,
+  TextInput,
+} from '@carbon/react'
+import { SendAlt } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -81,7 +92,7 @@ const WriteMail = observer(function WriteMail() {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputKey = useRef(0)
 
   // prefill `from` with the user's default address once the config is loaded
   useEffect(() => {
@@ -142,9 +153,8 @@ const WriteMail = observer(function WriteMail() {
     } catch (err) {
       console.error('Failed to read attachment:', err)
     } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      // remount the uploader button so selecting the same file again still fires change
+      fileInputKey.current += 1
     }
   }
 
@@ -206,110 +216,107 @@ const WriteMail = observer(function WriteMail() {
       >
         <h1>Write a mail</h1>
         <div className="form-row">
-          <label>
-            <span>From</span>
-            <input value={form.from} onChange={(event) => update('from', event.target.value)} />
-          </label>
-          <label>
-            <span>To</span>
-            <input
-              value={form.to}
-              onChange={(event) => update('to', event.target.value)}
-              required
-            />
-          </label>
+          <TextInput
+            id="mail-from"
+            labelText="From"
+            value={form.from}
+            onChange={(event) => update('from', event.target.value)}
+          />
+          <TextInput
+            id="mail-to"
+            labelText="To"
+            required
+            value={form.to}
+            onChange={(event) => update('to', event.target.value)}
+          />
         </div>
         <div className="form-row">
-          <label>
-            <span>Cc</span>
-            <input value={form.cc} onChange={(event) => update('cc', event.target.value)} />
-          </label>
-          <label>
-            <span>In reply to</span>
-            <input
-              value={form.inReplyTo}
-              onChange={(event) => update('inReplyTo', event.target.value)}
-            />
-          </label>
+          <TextInput
+            id="mail-cc"
+            labelText="Cc"
+            value={form.cc}
+            onChange={(event) => update('cc', event.target.value)}
+          />
+          <TextInput
+            id="mail-in-reply-to"
+            labelText="In reply to"
+            value={form.inReplyTo}
+            onChange={(event) => update('inReplyTo', event.target.value)}
+          />
         </div>
-        <label className="form-field">
-          <span>Subject</span>
-          <input
-            value={form.subject}
-            onChange={(event) => update('subject', event.target.value)}
-          />
-        </label>
-        <label className="form-field">
-          <span>Content (markdown)</span>
-          <textarea
-            rows={14}
-            value={form.markdown}
-            onChange={(event) => update('markdown', event.target.value)}
-          />
-        </label>
+        <TextInput
+          id="mail-subject"
+          labelText="Subject"
+          value={form.subject}
+          onChange={(event) => update('subject', event.target.value)}
+        />
+        <TextArea
+          id="mail-content"
+          labelText="Content (markdown)"
+          rows={14}
+          value={form.markdown}
+          onChange={(event) => update('markdown', event.target.value)}
+        />
         <div className="form-field">
-          <span>Attachments</span>
-          <input
-            ref={fileInputRef}
-            type="file"
+          <span className="cds--label attachments-label">Attachments</span>
+          <FileUploaderButton
+            key={fileInputKey.current}
+            labelText="Add files"
+            buttonKind="tertiary"
             multiple
+            disableLabelChanges
             onChange={(event) => handleFiles(event.target.files)}
           />
           {files.length > 0 && (
             <ul className="file-list">
               {files.map((file, index) => (
-                <li key={`${file.name}-${index}`}>
-                  {file.name}
-                  <button
-                    type="button"
-                    className="file-remove"
-                    title={`Remove ${file.name}`}
-                    onClick={() => removeFile(index)}
-                  >
-                    ×
-                  </button>
-                </li>
+                <FileUploaderItem
+                  key={`${file.name}-${index}`}
+                  uuid={String(index)}
+                  name={file.name}
+                  status="edit"
+                  iconDescription={`Remove ${file.name}`}
+                  onDelete={() => removeFile(index)}
+                />
               ))}
             </ul>
           )}
         </div>
-        <button type="submit" className="button primary">
+        <Button type="submit" renderIcon={SendAlt}>
           Check before send
-        </button>
+        </Button>
       </form>
 
-      {confirmOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            if (!sending) {
-              setConfirmOpen(false)
-            }
-          }}
-        >
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <h2>Confirmation</h2>
-            <div className="modal-section markdown-preview">
-              <ReactMarkdown>{form.markdown}</ReactMarkdown>
-            </div>
-            <pre className="modal-section modal-json">{JSON.stringify(buildPayload(), null, 2)}</pre>
-            {sendError && <p className="error">{sendError}</p>}
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="button"
-                disabled={sending}
-                onClick={() => setConfirmOpen(false)}
-              >
-                Cancel
-              </button>
-              <button type="button" className="button primary" disabled={sending} onClick={sendMail}>
-                {sending ? 'Sending…' : 'Send'}
-              </button>
-            </div>
-          </div>
+      <Modal
+        open={confirmOpen}
+        size="lg"
+        modalHeading="Confirmation"
+        primaryButtonText={sending ? 'Sending…' : 'Send'}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={sending}
+        onRequestSubmit={sendMail}
+        onRequestClose={() => {
+          if (!sending) {
+            setConfirmOpen(false)
+          }
+        }}
+      >
+        <div className="markdown-preview modal-section">
+          <ReactMarkdown>{form.markdown}</ReactMarkdown>
         </div>
-      )}
+        <CodeSnippet type="multi" className="modal-json">
+          {JSON.stringify(buildPayload(), null, 2)}
+        </CodeSnippet>
+        {sendError && (
+          <InlineNotification
+            kind="error"
+            title="The mail could not be sent"
+            subtitle={sendError}
+            hideCloseButton
+            lowContrast
+          />
+        )}
+      </Modal>
     </div>
   )
 })

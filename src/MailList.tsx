@@ -1,3 +1,4 @@
+import { InlineLoading } from '@carbon/react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
@@ -84,7 +85,9 @@ const MailList = observer(function MailList() {
       {store.currentFolderMails.length === 0 && !loadingMore && (
         <div className="mail-list-empty">No mails in this folder</div>
       )}
-      {loadingMore && <div className="mail-list-loading">Loading more mails…</div>}
+      {loadingMore && (
+        <InlineLoading className="mail-list-loading" description="Loading more mails…" />
+      )}
     </div>
   )
 })

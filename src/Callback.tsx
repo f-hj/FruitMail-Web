@@ -1,3 +1,4 @@
+import { InlineLoading } from '@carbon/react'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -22,7 +23,7 @@ export default function Callback() {
 
   return (
     <div className="callback">
-      <p>Signing you in…</p>
+      <InlineLoading description="Signing you in…" />
     </div>
   )
 }

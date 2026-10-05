@@ -12,11 +12,14 @@
     "generate:api": "openapi-ts"
   },
   "dependencies": {
+    "@carbon/icons-react": "^11.89.0",
+    "@carbon/react": "^1.117.0",
     "@fontsource/atkinson-hyperlegible": "^5.3.0",
     "mobx": "^7.0.6",
     "mobx-react-lite": "^5.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-is": "^19.3.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.4"
   },
@@ -29,6 +32,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "sass": "^1.105.1",
     "typescript": "^6.0.3",
     "vite": "^8.3.2"
   }

@@ -1,10 +1,25 @@
+import {
+  Content,
+  Header,
+  HeaderGlobalAction,
+  HeaderGlobalBar,
+  HeaderMenuButton,
+  HeaderName,
+  IconButton,
+  Search,
+  SideNav,
+  SideNavItems,
+  SideNavMenu,
+  SideNavMenuItem,
+  SkipToContent,
+} from '@carbon/react'
+import { Edit, Renew, User } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
-import { useEffect } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { getToken, redirectToOauth } from './api'
 import type { FolderDto } from './client'
-import { ChevronIcon, NewIcon, RefreshIcon, UserIcon } from './icons'
 import store, { type MailCategory } from './store'
 
 interface FolderGroupProps {
@@ -13,48 +28,93 @@ interface FolderGroupProps {
   folders: Array<FolderDto>
 }
 
+function decodePathname(pathname: string): string {
+  try {
+    return decodeURIComponent(pathname)
+  } catch {
+    // malformed percent-encoding: compare against the raw pathname
+    return pathname
+  }
+}
+
+/** True when the current route shows the given folder (with or without a selected mail). */
+function isFolderActive(pathname: string, category: MailCategory, folderName: string): boolean {
+  const decoded = decodePathname(pathname)
+  const base = `/${category}/${folderName}`
+  return decoded === base || decoded.startsWith(`${base}/`)
+}
+
 const FolderGroup = observer(function FolderGroup({
   title,
   category,
   folders,
 }: FolderGroupProps) {
   const collapsed = store.collapsed[category]
+  const { pathname } = useLocation()
+
+  // SideNavMenu manages its expansion internally; sync the persisted
+  // collapsed state when its toggle button is clicked (but not when a
+  // folder link inside the menu is clicked).
+  function handleClick(event: ReactMouseEvent<HTMLLIElement>) {
+    if ((event.target as HTMLElement | null)?.closest('button[aria-expanded]')) {
+      store.toggleCategory(category)
+    }
+  }
+
   return (
-    <section className="folder-group">
-      <button
-        type="button"
-        className="folder-group-toggle"
-        aria-expanded={!collapsed}
-        title={collapsed ? `Expand ${title}` : `Collapse ${title}`}
-        onClick={() => store.toggleCategory(category)}
-      >
-        <ChevronIcon size={14} />
-        {title}
-      </button>
-      {!collapsed && (
-        <ul className="folder-list">
-          {folders.map((folder) => (
-            <li key={`${category}_${folder.name}`}>
-              <NavLink
-                className={({isActive }) => `folder-item${isActive ? ' active' : ''}`}
-                to={`/${category}/${encodeURIComponent(folder.name)}`}
-              >
-                <span className="folder-name">{folder.name}</span>
-                <span className="folder-count">{folder.count ?? 0}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <SideNavMenu title={title} defaultExpanded={!collapsed} onClick={handleClick}>
+      {folders.map((folder) => {
+        const active = isFolderActive(pathname, category, folder.name)
+        return (
+          <SideNavMenuItem
+            key={`${category}_${folder.name}`}
+            as={Link}
+            to={`/${category}/${encodeURIComponent(folder.name)}`}
+            isActive={active}
+            aria-current={active ? 'page' : undefined}
+          >
+            <span className="folder-name">{folder.name}</span>
+            <span className="folder-count">{folder.count ?? 0}</span>
+          </SideNavMenuItem>
+        )
+      })}
+    </SideNavMenu>
+  )
+})
+
+/** The signed-in user, shown as a tooltip on the user icon in the header. */
+const HeaderUser = observer(function HeaderUser() {
+  const name = store.userName
+  const mail = store.userMail
+  return (
+    <IconButton
+      kind="ghost"
+      size="lg"
+      align="bottom-end"
+      className="header-user"
+      label={
+        <>
+          {name || 'Not signed in'}
+          {mail && <span className="header-user-mail">{mail}</span>}
+        </>
+      }
+    >
+      <User size={20} />
+    </IconButton>
   )
 })
 
 /**
- * Application shell: folder sidebar on the left, routed content on the right.
- * Redirects to the OAuth flow when there is no token.
+ * Application shell: Carbon UIShell with a top header (title, actions, user)
+ * and a left side navigation holding the folder menus. Redirects to the OAuth
+ * flow when there is no token.
  */
 const App = observer(function App() {
+  const navigate = useNavigate()
+  // only meaningful below the `lg` breakpoint, where the side nav overlays
+  // the content and starts closed
+  const [isSideNavExpanded, setIsSideNavExpanded] = useState(false)
+
   useEffect(() => {
     if (getToken() === null) {
       redirectToOauth()
@@ -64,51 +124,70 @@ const App = observer(function App() {
     store.getUserConfig()
   }, [])
 
+  /** On small screens, close the overlaying side nav after a link is followed. */
+  function handleSideNavClick(event: ReactMouseEvent<HTMLElement>) {
+    if ((event.target as HTMLElement | null)?.closest('a')) {
+      setIsSideNavExpanded(false)
+    }
+  }
+
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <header className="sidebar-header">
-          <span className="sidebar-title">Fruit&apos;mail</span>
-          <div className="sidebar-header-actions">
-            <Link className="icon-button" to="/writeMail" title="Write a mail">
-              <NewIcon />
-            </Link>
-            <button
-              type="button"
-              className="icon-button"
-              title="Refresh folders"
-              disabled={store.isGettingFolders}
-              onClick={() => store.getFolders()}
-            >
-              <RefreshIcon className={store.isGettingFolders ? 'spinning' : undefined} />
-            </button>
+    <>
+      <Header aria-label="Fruit'mail">
+        <SkipToContent />
+        <HeaderMenuButton
+          aria-label={isSideNavExpanded ? 'Close folders' : 'Open folders'}
+          isActive={isSideNavExpanded}
+          onClick={() => setIsSideNavExpanded((value) => !value)}
+        />
+        <HeaderName as={Link} to="/" prefix="">
+          Fruit&apos;mail
+        </HeaderName>
+        <HeaderGlobalBar>
+          <HeaderGlobalAction
+            aria-label="Write a mail"
+            onClick={() => navigate('/writeMail')}
+          >
+            <Edit size={20} />
+          </HeaderGlobalAction>
+          <HeaderGlobalAction
+            aria-label="Refresh folders"
+            onClick={() => {
+              if (!store.isGettingFolders) {
+                store.getFolders()
+              }
+            }}
+          >
+            <Renew size={20} className={store.isGettingFolders ? 'spinning' : undefined} />
+          </HeaderGlobalAction>
+          <HeaderUser />
+        </HeaderGlobalBar>
+        <SideNav
+          aria-label="Folders"
+          expanded={isSideNavExpanded}
+          onClick={handleSideNavClick}
+          onOverlayClick={() => setIsSideNavExpanded(false)}
+        >
+          <div className="folder-search">
+            <Search
+              id="folder-search-input"
+              size="sm"
+              labelText="Filter folders"
+              placeholder="Filter folders"
+              onChange={(event) => store.filterFolders(event.target.value)}
+            />
           </div>
-        </header>
-        <div className="sidebar-search">
-          <input
-            type="search"
-            placeholder="Folder"
-            aria-label="Filter folders"
-            onChange={(event) => store.filterFolders(event.target.value)}
-          />
-        </div>
-        <nav className="sidebar-nav">
-          <FolderGroup title="Fresh" category="new" folders={store.folders.newP} />
-          <FolderGroup title="Read" category="read" folders={store.folders.readP} />
-          <FolderGroup title="Done" category="done" folders={store.folders.doneP} />
-        </nav>
-        <footer className="sidebar-footer">
-          <UserIcon size={18} />
-          <div className="sidebar-user">
-            <span className="sidebar-user-name">{store.userName || 'Not signed in'}</span>
-            {store.userMail && <span className="sidebar-user-mail">{store.userMail}</span>}
-          </div>
-        </footer>
-      </aside>
-      <main className="content">
+          <SideNavItems>
+            <FolderGroup title="Fresh" category="new" folders={store.folders.newP} />
+            <FolderGroup title="Read" category="read" folders={store.folders.readP} />
+            <FolderGroup title="Done" category="done" folders={store.folders.doneP} />
+          </SideNavItems>
+        </SideNav>
+      </Header>
+      <Content className="app-content" id="main-content">
         <Outlet />
-      </main>
-    </div>
+      </Content>
+    </>
   )
 })
 
