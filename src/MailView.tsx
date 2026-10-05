@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { attachmentUrl, handleApiError, messageViewUrl } from './api'
 import { mailsControllerApplyAction, mailsControllerGetMessage } from './client'
-import { escapeHtml, formatAddresses } from './format'
+import { asArray, escapeHtml, formatAddresses } from './format'
 import { bimiBadge, bimiLogoDataUrl, dkimBadge, dmarcBadge, spfBadge, tlsBadge } from './security'
 import type { BadgeStatus } from './security'
 import store, { type Mail } from './store'
@@ -156,7 +156,7 @@ const MailView = observer(function MailView() {
     )
   }
 
-  const attachments = msg.attachments ?? []
+  const attachments = asArray(msg.attachments)
   const logoUrl = bimiLogoDataUrl(msg.bimi)
   const badges = [
     tlsBadge(msg.connection),

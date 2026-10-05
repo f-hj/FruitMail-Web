@@ -391,6 +391,11 @@ a.cds--side-nav__link[aria-current='page'] .folder-count {
   margin-top: 1rem;
 }
 
+/* fallback page shown by the ErrorBoundary when rendering a route crashed */
+.content-error {
+  margin: 1rem;
+}
+
 /* OAuth callback ------------------------------------------------------------------- */
 
 .callback {

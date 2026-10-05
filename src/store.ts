@@ -13,6 +13,7 @@ import {
   mailsControllerListMessagesByFolder,
   usersControllerUserConfig,
 } from './client'
+import { asArray } from './format'
 
 export type MailCategory = 'new' | 'read' | 'done'
 
@@ -135,9 +136,12 @@ class Store {
         runInAction(() => {
           this.folders = {
             ...data,
-            newP: data.new,
-            readP: data.read,
-            doneP: data.done,
+            new: asArray(data.new),
+            read: asArray(data.read),
+            done: asArray(data.done),
+            newP: asArray(data.new),
+            readP: asArray(data.read),
+            doneP: asArray(data.done),
           }
         })
       }
@@ -196,7 +200,7 @@ class Store {
         return
       }
       runInAction(() => {
-        const mails = (data ?? []) as Array<Mail>
+        const mails = asArray(data) as Array<Mail>
         if (push) {
           this.currentFolderMails.push(...mails)
         } else {

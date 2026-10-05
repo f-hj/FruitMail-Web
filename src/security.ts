@@ -5,6 +5,7 @@ import type {
   DmarcCheckDto,
   SpfCheckDto,
 } from './client'
+import { asArray } from './format'
 
 export type BadgeStatus = 'ok' | 'warn' | 'bad' | 'none'
 
@@ -144,8 +145,11 @@ export function tlsBadge(connection?: ConnectionDto): SecurityBadge {
   }
 }
 
-export function dkimBadge(dkim?: Array<DkimCheckDto>): SecurityBadge {
-  if (!dkim || dkim.length === 0) {
+export function dkimBadge(dkim?: DkimCheckDto | Array<DkimCheckDto>): SecurityBadge {
+  // the spec declares an array, but the server sends a single object when
+  // there is only one signature
+  const checks = asArray(dkim)
+  if (checks.length === 0) {
     return {
       key: 'dkim',
       status: 'none',
@@ -154,19 +158,19 @@ export function dkimBadge(dkim?: Array<DkimCheckDto>): SecurityBadge {
       tooltip: 'The message carries no DKIM signature.',
     }
   }
-  const status = worstStatus(dkim.map((check) => check.result))
+  const status = worstStatus(checks.map((check) => check.result))
   const worst =
-    dkim.find((check) => STATUS_RANK[resultStatus(check.result)] === STATUS_RANK[status]) ??
-    dkim[0]
-  const domains = dkim
+    checks.find((check) => STATUS_RANK[resultStatus(check.result)] === STATUS_RANK[status]) ??
+    checks[0]
+  const domains = checks
     .map((check) => check.signingDomain)
     .filter((domain): domain is string => Boolean(domain))
-  const detail = domains.length > 0 ? domains.join(', ') : `${dkim.length} signatures`
+  const detail = domains.length > 0 ? domains.join(', ') : `${checks.length} signatures`
   const value = [worst.result, detail].filter(Boolean).join(' · ')
-  const tooltip = dkim
+  const tooltip = checks
     .map((check, index) => {
       const lines: Array<string> = [
-        dkim.length > 1 ? `Signature ${index + 1}: ${check.result}` : `Result: ${check.result}`,
+        checks.length > 1 ? `Signature ${index + 1}: ${check.result}` : `Result: ${check.result}`,
       ]
       if (check.signingDomain) {
         lines.push(`d=${check.signingDomain}`)
@@ -295,8 +299,11 @@ export function bimiBadge(bimi?: BimiCheckDto): SecurityBadge {
     if (subject) {
       lines.push(`  Subject: ${subject}`)
     }
-    if (cert.subjectAltName && cert.subjectAltName.length > 0) {
-      lines.push(`  Covers: ${cert.subjectAltName.join(', ')}`)
+    const altNames = asArray(cert.subjectAltName).filter(
+      (name): name is string => typeof name === 'string',
+    )
+    if (altNames.length > 0) {
+      lines.push(`  Covers: ${altNames.join(', ')}`)
     }
     const issuer = formatCertFields(cert.issuer)
     if (issuer) {

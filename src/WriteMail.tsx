@@ -17,6 +17,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { handleApiError } from './api'
 import type { SendMailDto, SendMailResultDto } from './client'
 import { mailsControllerGetMessage, mailsControllerSendMessage } from './client'
+import { asArray } from './format'
 import store, { type Mail } from './store'
 
 interface MailForm {
@@ -118,12 +119,14 @@ const WriteMail = observer(function WriteMail() {
           return
         }
         const msg = data as Mail
-        const recipients = msg.to ?? msg.envelopeTo ?? []
-        const sender = msg.envelopeFrom?.address ?? msg.from?.[0]?.address ?? ''
+        const recipients = asArray(msg.to ?? msg.envelopeTo)
+        const sender = msg.envelopeFrom?.address ?? asArray(msg.from)[0]?.address ?? ''
         setForm({
           from: recipients[0]?.address ?? store.defaultMail,
           to: sender,
-          cc: (msg.cc ?? []).map((address) => address.address).join(', '),
+          cc: asArray(msg.cc)
+            .map((address) => address.address)
+            .join(', '),
           subject: `RE: ${msg.subject ?? ''}`,
           inReplyTo: resolveMessageId(msg),
           markdown:

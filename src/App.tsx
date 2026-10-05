@@ -1,11 +1,14 @@
 import {
   Content,
+  ErrorBoundary,
+  ErrorBoundaryContext,
   Header,
   HeaderGlobalAction,
   HeaderGlobalBar,
   HeaderMenuButton,
   HeaderName,
   IconButton,
+  InlineNotification,
   Search,
   SideNav,
   SideNavItems,
@@ -15,7 +18,7 @@ import {
 } from '@carbon/react'
 import { Edit, Renew, User } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useState, type ErrorInfo, type MouseEvent as ReactMouseEvent } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { getToken, redirectToOauth } from './api'
@@ -43,6 +46,25 @@ function isFolderActive(pathname: string, category: MailCategory, folderName: st
   const base = `/${category}/${folderName}`
   return decoded === base || decoded.startsWith(`${base}/`)
 }
+
+/** Logs render errors caught by the ErrorBoundary (the Carbon default drops the error). */
+const errorBoundaryLogger = {
+  log(error: Error, info: ErrorInfo) {
+    console.error(error, info.componentStack)
+  },
+}
+
+/** Shown instead of the routed page when rendering it crashed. */
+const contentErrorFallback = (
+  <InlineNotification
+    className="content-error"
+    kind="error"
+    title="Something went wrong"
+    subtitle="This page could not be displayed. Select another folder or message to continue."
+    hideCloseButton
+    lowContrast
+  />
+)
 
 const FolderGroup = observer(function FolderGroup({
   title,
@@ -111,6 +133,7 @@ const HeaderUser = observer(function HeaderUser() {
  */
 const App = observer(function App() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   // only meaningful below the `lg` breakpoint, where the side nav overlays
   // the content and starts closed
   const [isSideNavExpanded, setIsSideNavExpanded] = useState(false)
@@ -185,7 +208,12 @@ const App = observer(function App() {
         </SideNav>
       </Header>
       <Content className="app-content" id="main-content">
-        <Outlet />
+        <ErrorBoundaryContext.Provider value={errorBoundaryLogger}>
+          {/* keyed by route so navigating to another page recovers from the error */}
+          <ErrorBoundary key={pathname} fallback={contentErrorFallback}>
+            <Outlet />
+          </ErrorBoundary>
+        </ErrorBoundaryContext.Provider>
       </Content>
     </>
   )

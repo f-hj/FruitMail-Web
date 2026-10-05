@@ -1,11 +1,28 @@
 import type { MailAddressDto } from './client'
 
+/**
+ * Normalizes a server field declared as an array but sometimes sent as a
+ * single object (or missing entirely), so callers can `.map` safely.
+ */
+export function asArray<T>(value: T | Array<T> | null | undefined): Array<T> {
+  if (Array.isArray(value)) {
+    return value
+  }
+  if (value === null || value === undefined) {
+    return []
+  }
+  return [value]
+}
+
 /** Formats mail addresses the way the legacy UI did: `Name <address>`. */
-export function formatAddresses(addresses?: Array<MailAddressDto>): string {
-  if (!addresses || addresses.length === 0) {
+export function formatAddresses(
+  addresses?: MailAddressDto | Array<MailAddressDto>,
+): string {
+  const list = asArray(addresses)
+  if (list.length === 0) {
     return 'Unknown'
   }
-  return addresses
+  return list
     .map((address) => `${address.name ?? 'Unknown'} <${address.address ?? 'Unknown'}>`)
     .join(', ')
 }
