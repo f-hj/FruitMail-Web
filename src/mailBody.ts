@@ -5,8 +5,8 @@ import { messageViewUrl, SERVER_URL } from './api'
 import { escapeHtml } from './format'
 
 /**
- * Prepended to the mail's own head: the app font, and a zero-specificity
- * `:where()` fallback so mails that set their own fonts keep them. The base
+ * Prepended to the mail's own head: the app font and body margin, as
+ * zero-specificity `:where()` fallbacks so mails' own styles win. The base
  * keeps the mail's relative URLs pointing at the mail server.
  */
 function injectedHead(): string {
@@ -17,6 +17,8 @@ function injectedHead(): string {
     `@font-face{font-family:'Atkinson Hyperlegible';font-weight:400;font-display:swap;src:url(${fontUrl(atkinson400)}) format('woff2')}` +
     `@font-face{font-family:'Atkinson Hyperlegible';font-weight:700;font-display:swap;src:url(${fontUrl(atkinson700)}) format('woff2')}` +
     ":where(html){font-family:'Atkinson Hyperlegible',sans-serif}" +
+    // flush left, like the mail view header
+    ':where(body){margin:0}' +
     '</style>'
   )
 }

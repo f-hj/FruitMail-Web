@@ -29,6 +29,16 @@ export interface Mail extends MailDto {
   messageId?: string
   /** Raw message headers (`message-id`, `date`, ...), as parsed by the server. */
   headers?: Record<string, unknown>
+  spam?: SpamCheck
+}
+
+/** SpamAssassin result of a mail (not in the OpenAPI spec yet). */
+export interface SpamCheck {
+  score: number
+  /** Score from which the mail is considered spam. */
+  required: number
+  isSpam: boolean
+  rules?: Array<{ name: string; score: number; description?: string }>
 }
 
 /** User configuration; `defaultName` is sent by the server but not in the spec. */

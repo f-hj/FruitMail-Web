@@ -6,12 +6,13 @@ import type {
   SpfCheckDto,
 } from './client'
 import { asArray } from './format'
+import type { SpamCheck } from './store'
 
 export type BadgeStatus = 'ok' | 'warn' | 'bad' | 'none'
 
 /** One authentication/security indicator shown in the mail header details. */
 export interface SecurityBadge {
-  key: 'tls' | 'dkim' | 'spf' | 'dmarc' | 'bimi'
+  key: 'tls' | 'dkim' | 'spf' | 'dmarc' | 'bimi' | 'spam'
   status: BadgeStatus
   label: string
   /** Short summary; empty when the status colour says it all (pass, unknown). */
@@ -335,6 +336,43 @@ export function bimiBadge(bimi?: BimiCheckDto): SecurityBadge {
     lines.push(`Authority URL: ${bimi.authorityUrl}`)
   }
   return { key: 'bimi', status, label: 'BIMI', value, details: lines.join('\n') }
+}
+
+export function spamBadge(spam?: SpamCheck): SecurityBadge {
+  if (!spam) {
+    return {
+      key: 'spam',
+      status: 'none',
+      label: 'Spam',
+      value: '',
+      details: 'No spam check result available for this message.',
+    }
+  }
+  let status: BadgeStatus = 'ok'
+  if (spam.isSpam) {
+    status = 'bad'
+  } else if (spam.score >= spam.required / 2) {
+    // halfway to the spam threshold
+    status = 'warn'
+  }
+  const lines: Array<string> = [
+    `${spam.isSpam ? 'Considered spam' : 'Not spam'}: score ${spam.score} (spam from ${spam.required})`,
+  ]
+  const rules = [...(spam.rules ?? [])].sort((a, b) => b.score - a.score)
+  if (rules.length > 0) {
+    lines.push('', 'Rules:')
+    for (const rule of rules) {
+      const score = rule.score > 0 ? `+${rule.score}` : String(rule.score)
+      lines.push(`  ${score}  ${rule.name}${rule.description ? ` — ${rule.description}` : ''}`)
+    }
+  }
+  return {
+    key: 'spam',
+    status,
+    label: 'Spam',
+    value: `${spam.score} / ${spam.required}`,
+    details: lines.join('\n'),
+  }
 }
 
 /** Data URL of the verified BIMI logo, when present (full message only). */

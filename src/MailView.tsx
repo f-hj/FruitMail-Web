@@ -16,7 +16,15 @@ import { attachmentUrl, handleApiError, messageViewUrl } from './api'
 import { mailsControllerApplyAction, mailsControllerGetMessage } from './client'
 import { asArray, escapeHtml, formatAddresses, formatDate } from './format'
 import { fetchMailBody } from './mailBody'
-import { bimiBadge, bimiLogoDataUrl, dkimBadge, dmarcBadge, spfBadge, tlsBadge } from './security'
+import {
+  bimiBadge,
+  bimiLogoDataUrl,
+  dkimBadge,
+  dmarcBadge,
+  spamBadge,
+  spfBadge,
+  tlsBadge,
+} from './security'
 import type { BadgeStatus } from './security'
 import store, { type Mail } from './store'
 
@@ -193,6 +201,7 @@ const MailView = observer(function MailView() {
     spfBadge(msg.spf),
     dmarcBadge(msg.dmarc),
     bimiBadge(msg.bimi),
+    spamBadge(msg.spam),
   ]
 
   return (
@@ -204,7 +213,7 @@ const MailView = observer(function MailView() {
             {logoUrl && (
               <img className="bimi-logo" src={logoUrl} alt="" title="BIMI verified sender" />
             )}
-            From: {formatAddresses(msg.from)}
+            {formatAddresses(msg.from)}
           </span>
           <time className="mail-view-date" dateTime={new Date(msg.date).toISOString()}>
             {formatDate(msg.date)}
