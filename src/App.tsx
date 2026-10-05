@@ -83,7 +83,10 @@ const App = observer(function App() {
         </nav>
         <footer className="sidebar-footer">
           <UserIcon size={18} />
-          <span className="sidebar-user">{store.defaultMail || 'Not signed in'}</span>
+          <div className="sidebar-user">
+            <span className="sidebar-user-name">{store.userName || 'Not signed in'}</span>
+            {store.userMail && <span className="sidebar-user-mail">{store.userMail}</span>}
+          </div>
         </footer>
       </aside>
       <main className="content">

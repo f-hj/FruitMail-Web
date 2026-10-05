@@ -55,6 +55,19 @@ function readFileAsBase64(file: File): Promise<AttachedFile> {
   })
 }
 
+/**
+ * Message-ID used for threading when replying. The server exposes the raw
+ * message headers under `headers` (not declared in the OpenAPI spec); older
+ * payloads used a top-level `messageId`.
+ */
+function resolveMessageId(msg: Mail): string {
+  const header = msg.headers?.['message-id']
+  if (typeof header === 'string' && header) {
+    return header
+  }
+  return msg.messageId ?? ''
+}
+
 /** Mail composition form, also used to reply to an existing message. */
 const WriteMail = observer(function WriteMail() {
   const [searchParams] = useSearchParams()
@@ -101,7 +114,7 @@ const WriteMail = observer(function WriteMail() {
           to: sender,
           cc: (msg.cc ?? []).map((address) => address.address).join(', '),
           subject: `RE: ${msg.subject ?? ''}`,
-          inReplyTo: msg.messageId ?? '',
+          inReplyTo: resolveMessageId(msg),
           markdown:
             '\n\n---\n\n' +
             `**From:** ${sender}\n\n` +

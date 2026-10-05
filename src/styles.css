@@ -11,6 +11,8 @@
   --border: #e2e4ea;
   --text: #1b1b1b;
   --text-muted: #6b7280;
+  --radius: 3px;
+  --radius-lg: 5px;
 }
 
 * {
@@ -35,6 +37,18 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Atkinson Hyperlegible is legible on its own: no bold anywhere in the UI */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong {
+  font-weight: 400;
 }
 
 .app {
@@ -63,7 +77,6 @@ a {
 
 .sidebar-title {
   font-size: 20px;
-  font-weight: 600;
 }
 
 .sidebar-header-actions {
@@ -81,7 +94,7 @@ a {
   background: rgba(0, 0, 0, 0.18);
   color: var(--sidebar-fg);
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--radius);
   outline: none;
   font: inherit;
 }
@@ -108,7 +121,6 @@ a {
   margin: 0 0 6px;
   padding: 0 10px;
   font-size: 12px;
-  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--sidebar-muted);
@@ -126,7 +138,7 @@ a {
   justify-content: space-between;
   gap: 8px;
   padding: 7px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .folder-item:hover {
@@ -147,13 +159,12 @@ a {
 .folder-count {
   flex-shrink: 0;
   font-size: 12px;
-  font-weight: 300;
   opacity: 0.85;
 }
 
 .sidebar-footer {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
@@ -161,10 +172,27 @@ a {
   font-size: 13px;
 }
 
+.sidebar-footer svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .sidebar-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebar-user-name,
+.sidebar-user-mail {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar-user-name {
+  color: var(--sidebar-fg);
 }
 
 /* Icon buttons ----------------------------------------------------------- */
@@ -176,7 +204,7 @@ a {
   gap: 4px;
   padding: 7px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -235,7 +263,7 @@ a {
   padding: 12px 14px;
   background: var(--bg-alt);
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
 }
 
 .mail-list-item:hover {
@@ -250,7 +278,6 @@ a {
 .mail-list-item-subject {
   margin-bottom: 4px;
   font-size: 15px;
-  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -370,14 +397,14 @@ a {
   list-style: none;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .attachments-menu a {
   display: block;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   overflow-wrap: anywhere;
 }
 
@@ -430,7 +457,6 @@ a {
 .write-mail label > span,
 .form-field > span {
   font-size: 13px;
-  font-weight: 600;
   color: var(--text-muted);
 }
 
@@ -438,7 +464,7 @@ a {
 .write-mail textarea {
   padding: 9px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   font: inherit;
   color: var(--text);
   background: #fff;
@@ -472,7 +498,7 @@ a {
   gap: 6px;
   padding: 4px 10px;
   background: var(--bg-alt);
-  border-radius: 999px;
+  border-radius: var(--radius);
   font-size: 13px;
 }
 
@@ -494,11 +520,10 @@ a {
 .button {
   padding: 9px 18px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
   color: var(--text);
   font: inherit;
-  font-weight: 600;
   cursor: pointer;
 }
 
@@ -543,7 +568,7 @@ a {
   overflow-y: auto;
   padding: 24px;
   background: #fff;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
 }
 
@@ -557,7 +582,7 @@ a {
   overflow-y: auto;
   padding: 14px;
   background: var(--bg-alt);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .modal-json {
@@ -576,7 +601,6 @@ a {
 .error {
   margin: 0;
   color: var(--danger);
-  font-weight: 700;
 }
 
 .markdown-preview :first-child {

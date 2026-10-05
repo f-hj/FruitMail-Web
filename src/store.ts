@@ -26,6 +26,8 @@ export interface Mail extends MailDto {
   cc?: Array<MailAddressDto>
   envelopeFrom?: MailAddressDto
   messageId?: string
+  /** Raw message headers (`message-id`, `date`, ...), as parsed by the server. */
+  headers?: Record<string, unknown>
 }
 
 /** User configuration; `defaultName` is sent by the server but not in the spec. */
@@ -65,12 +67,22 @@ class Store {
 
   /** `Name <user@domain>` of the user's primary mail address. */
   get defaultMail(): string {
-    const mail = this.user.mails?.[0]
-    if (!mail) {
+    if (!this.userMail) {
       return ''
     }
-    const name = this.user.defaultName ?? mail.name ?? ''
-    return `${name} <${mail.name}@${mail.domain}>`.trim()
+    return `${this.userName} <${this.userMail}>`.trim()
+  }
+
+  /** Display name of the user (falls back to the mailbox local part). */
+  get userName(): string {
+    const mail = this.user.mails?.[0]
+    return this.user.defaultName ?? mail?.name ?? ''
+  }
+
+  /** Primary e-mail address of the user. */
+  get userMail(): string {
+    const mail = this.user.mails?.[0]
+    return mail ? `${mail.name}@${mail.domain}` : ''
   }
 
   async getUserConfig(): Promise<void> {
