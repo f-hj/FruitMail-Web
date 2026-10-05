@@ -2,11 +2,11 @@ FROM node:24-alpine AS builder
 
 WORKDIR /fruitmail-web
 
-COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile || yarn install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
-RUN yarn build
+RUN npm run build
 
 FROM nginx:1.27-alpine
 

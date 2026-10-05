@@ -1,0 +1,173 @@
+import { makeAutoObservable, runInAction } from 'mobx'
+
+import { handleApiError } from './api'
+import type {
+  FolderDto,
+  FoldersV2Dto,
+  MailAddressDto,
+  MailDto,
+  UserConfigDto,
+} from './client'
+import {
+  foldersControllerListFoldersV2,
+  mailsControllerListMessagesByFolder,
+  usersControllerUserConfig,
+} from './client'
+
+export type MailCategory = 'new' | 'read' | 'done'
+
+/**
+ * A mail as returned by the server. The OpenAPI spec does not (yet) declare
+ * every field the API sends; the extra optional fields below are used when
+ * replying to a message.
+ */
+export interface Mail extends MailDto {
+  to?: Array<MailAddressDto>
+  cc?: Array<MailAddressDto>
+  envelopeFrom?: MailAddressDto
+  messageId?: string
+}
+
+/** User configuration; `defaultName` is sent by the server but not in the spec. */
+export type UserConfig = Partial<UserConfigDto> & { defaultName?: string }
+
+/** Folders grouped by read state, plus the sidebar-search-filtered copies. */
+export interface Folders extends FoldersV2Dto {
+  newP: Array<FolderDto>
+  readP: Array<FolderDto>
+  doneP: Array<FolderDto>
+}
+
+export function isMailCategory(value?: string): value is MailCategory {
+  return value === 'new' || value === 'read' || value === 'done'
+}
+
+class Store {
+  user: UserConfig = {}
+
+  isGettingFolders = false
+  folders: Folders = {
+    new: [],
+    read: [],
+    done: [],
+    newP: [],
+    readP: [],
+    doneP: [],
+  }
+
+  currentType: MailCategory = 'new'
+  currentFolder = 'inbox'
+  currentFolderMails: Array<Mail> = []
+
+  constructor() {
+    makeAutoObservable(this)
+  }
+
+  /** `Name <user@domain>` of the user's primary mail address. */
+  get defaultMail(): string {
+    const mail = this.user.mails?.[0]
+    if (!mail) {
+      return ''
+    }
+    const name = this.user.defaultName ?? mail.name ?? ''
+    return `${name} <${mail.name}@${mail.domain}>`.trim()
+  }
+
+  async getUserConfig(): Promise<void> {
+    try {
+      const { data, error } = await usersControllerUserConfig()
+      if (error) {
+        handleApiError(error)
+        return
+      }
+      if (data) {
+        runInAction(() => {
+          this.user = data as UserConfig
+        })
+      }
+    } catch (err) {
+      // no connection - TODO: show a notification
+      console.error('Failed to load user config:', err)
+    }
+  }
+
+  async getFolders(): Promise<void> {
+    this.isGettingFolders = true
+    try {
+      const { data, error } = await foldersControllerListFoldersV2()
+      if (error) {
+        handleApiError(error)
+        return
+      }
+      if (data) {
+        runInAction(() => {
+          this.folders = {
+            ...data,
+            newP: data.new,
+            readP: data.read,
+            doneP: data.done,
+          }
+        })
+      }
+    } catch (err) {
+      // no connection - TODO: show a notification
+      console.error('Failed to load folders:', err)
+    } finally {
+      runInAction(() => {
+        this.isGettingFolders = false
+      })
+    }
+  }
+
+  /** Filters the sidebar folder lists by name. */
+  filterFolders(search: string): void {
+    const matches = (folder: FolderDto) => folder.name.includes(search)
+    this.folders.newP = this.folders.new.filter(matches)
+    this.folders.readP = this.folders.read.filter(matches)
+    this.folders.doneP = this.folders.done.filter(matches)
+  }
+
+  /**
+   * Loads the mails of a folder. With `push`, the next page (15 mails older
+   * than the last loaded one) is appended for infinite scrolling.
+   */
+  async getMails(type?: string, folder?: string, push = false): Promise<void> {
+    if (isMailCategory(type)) {
+      this.currentType = type
+    }
+    if (folder) {
+      this.currentFolder = folder
+    }
+
+    let from = 0
+    if (push && this.currentFolderMails.length > 0) {
+      from = this.currentFolderMails[this.currentFolderMails.length - 1].date
+    }
+
+    try {
+      const { data, error } = await mailsControllerListMessagesByFolder({
+        path: { category: this.currentType, folder: this.currentFolder },
+        query: { nb: '15', direction: 'past', from: String(from) },
+      })
+      if (error) {
+        handleApiError(error)
+        return
+      }
+      runInAction(() => {
+        const mails = (data ?? []) as Array<Mail>
+        if (push) {
+          this.currentFolderMails.push(...mails)
+        } else {
+          this.currentFolderMails = mails
+        }
+      })
+    } catch (err) {
+      // no connection - TODO: show a notification
+      console.error('Failed to load mails:', err)
+    }
+  }
+}
+
+const store = new Store()
+
+export default store
