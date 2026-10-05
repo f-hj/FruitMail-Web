@@ -27,9 +27,9 @@ export function formatAddresses(
     .join(', ')
 }
 
-/** Formats a unix-ms timestamp for display in the mail list. */
+/** Formats a unix-ms timestamp for the mail list; the `sv` locale gives ISO-like dates. */
 export function formatDate(timestamp: number): string {
-  return new Date(timestamp).toLocaleString()
+  return new Date(timestamp).toLocaleString('sv')
 }
 
 /** Escapes a string so it can be embedded in HTML safely. */

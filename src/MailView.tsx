@@ -1,4 +1,12 @@
-import { IconButton, Loading, OverflowMenu, OverflowMenuItem, Tag, Tooltip } from '@carbon/react'
+import {
+  IconButton,
+  Loading,
+  Modal,
+  OverflowMenu,
+  OverflowMenuItem,
+  Stack,
+  Tag,
+} from '@carbon/react'
 import { Attachment, Checkmark, Printer, Reply, Security } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useState } from 'react'
@@ -6,7 +14,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { attachmentUrl, handleApiError, messageViewUrl } from './api'
 import { mailsControllerApplyAction, mailsControllerGetMessage } from './client'
-import { asArray, escapeHtml, formatAddresses } from './format'
+import { asArray, escapeHtml, formatAddresses, formatDate } from './format'
+import { fetchMailBody } from './mailBody'
 import { bimiBadge, bimiLogoDataUrl, dkimBadge, dmarcBadge, spfBadge, tlsBadge } from './security'
 import type { BadgeStatus } from './security'
 import store, { type Mail } from './store'
@@ -72,6 +81,8 @@ const MailView = observer(function MailView() {
   const [failed, setFailed] = useState(false)
   // kept open across messages on purpose, to compare details while browsing
   const [showDetails, setShowDetails] = useState(false)
+  const [bodyDoc, setBodyDoc] = useState<string | null>(null)
+  const [bodyFailed, setBodyFailed] = useState(false)
 
   useEffect(() => {
     setMsg(null)
@@ -112,6 +123,24 @@ const MailView = observer(function MailView() {
     return () => {
       cancelled = true
     }
+  }, [id])
+
+  useEffect(() => {
+    setBodyDoc(null)
+    setBodyFailed(false)
+    if (!id) {
+      return
+    }
+    const controller = new AbortController()
+    fetchMailBody(id, controller.signal)
+      .then(setBodyDoc)
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          console.error(err)
+          setBodyFailed(true)
+        }
+      })
+    return () => controller.abort()
   }, [id])
 
   async function markAsDone() {
@@ -169,7 +198,7 @@ const MailView = observer(function MailView() {
   return (
     <div className="mail-view">
       <header className="mail-view-header">
-        <div className="mail-view-title">
+        <Stack gap={2} className="mail-view-title">
           <h2>{msg.subject || '(no subject)'}</h2>
           <span className="mail-view-from">
             {logoUrl && (
@@ -177,16 +206,17 @@ const MailView = observer(function MailView() {
             )}
             From: {formatAddresses(msg.from)}
           </span>
-        </div>
+          <time className="mail-view-date" dateTime={new Date(msg.date).toISOString()}>
+            {formatDate(msg.date)}
+          </time>
+        </Stack>
         <div className="mail-view-actions">
           <IconButton
             kind="ghost"
             size="sm"
             align="bottom-end"
             label="Message details"
-            aria-expanded={showDetails}
-            aria-controls="mail-details"
-            onClick={() => setShowDetails((value) => !value)}
+            onClick={() => setShowDetails(true)}
           >
             <Security />
           </IconButton>
@@ -239,34 +269,38 @@ const MailView = observer(function MailView() {
           )}
         </div>
       </header>
-      {showDetails && (
-        <div className="mail-details" id="mail-details">
+      <Modal
+        passiveModal
+        open={showDetails}
+        modalHeading="Message details"
+        onRequestClose={() => setShowDetails(false)}
+      >
+        <Stack gap={6}>
           {badges.map((badge) => (
-            <Tooltip
-              key={badge.key}
-              align="bottom-start"
-              label={<span className="badge-tooltip">{badge.tooltip}</span>}
-            >
-              <Tag
-                className={`badge-tag badge-tag--${badge.status}`}
-                type={TAG_TYPES[badge.status]}
-                size="sm"
-                tabIndex={0}
-              >
-                {badge.key === 'bimi' && logoUrl && (
-                  <img className="badge-logo" src={logoUrl} alt="" />
-                )}
-                <span className="badge-label">{badge.label}</span>
-                <span className="badge-value">{badge.value}</span>
-              </Tag>
-            </Tooltip>
+            <Stack key={badge.key} gap={3}>
+              <div>
+                <Tag
+                  className={`badge-tag badge-tag--${badge.status}`}
+                  type={TAG_TYPES[badge.status]}
+                  size="sm"
+                >
+                  {badge.key === 'bimi' && logoUrl && (
+                    <img className="badge-logo" src={logoUrl} alt="" />
+                  )}
+                  <span className="badge-label">{badge.label}</span>
+                  {badge.value && <span className="badge-value">{badge.value}</span>}
+                </Tag>
+              </div>
+              <p className="badge-details">{badge.details}</p>
+            </Stack>
           ))}
-        </div>
-      )}
+        </Stack>
+      </Modal>
       <iframe
         className="mail-view-body"
         title="Mail content"
-        src={messageViewUrl(msg.id)}
+        src={bodyFailed ? messageViewUrl(msg.id) : undefined}
+        srcDoc={bodyFailed ? undefined : (bodyDoc ?? '')}
         sandbox="allow-same-origin allow-modals allow-popups"
       />
     </div>

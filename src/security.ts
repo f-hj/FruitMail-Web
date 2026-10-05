@@ -14,9 +14,10 @@ export interface SecurityBadge {
   key: 'tls' | 'dkim' | 'spf' | 'dmarc' | 'bimi'
   status: BadgeStatus
   label: string
+  /** Short summary; empty when the status colour says it all (pass, unknown). */
   value: string
-  /** Multi-line details, shown in a tooltip. */
-  tooltip: string
+  /** Multi-line details. */
+  details: string
 }
 
 const STATUS_RANK: Record<BadgeStatus, number> = { bad: 0, warn: 1, none: 2, ok: 3 }
@@ -36,6 +37,11 @@ function resultStatus(result?: string): BadgeStatus {
       // none, neutral, policy, skipped, missing
       return 'none'
   }
+}
+
+/** The result word, unless it is `pass` (already conveyed by the badge colour). */
+function resultWord(result?: string): string | undefined {
+  return result === 'pass' ? undefined : result
 }
 
 function worstStatus(results: Array<string | undefined>): BadgeStatus {
@@ -98,8 +104,8 @@ export function tlsBadge(connection?: ConnectionDto): SecurityBadge {
       key: 'tls',
       status: 'none',
       label: 'TLS',
-      value: 'unknown',
-      tooltip: 'No connection metadata available for this message.',
+      value: '',
+      details: 'No connection metadata available for this message.',
     }
   }
   const tls = connection.tls
@@ -141,7 +147,7 @@ export function tlsBadge(connection?: ConnectionDto): SecurityBadge {
     status: connection.secure ? 'ok' : 'bad',
     label: 'TLS',
     value: connection.secure ? (tls?.version ?? 'encrypted') : 'plaintext',
-    tooltip: lines.join('\n'),
+    details: lines.join('\n'),
   }
 }
 
@@ -155,7 +161,7 @@ export function dkimBadge(dkim?: DkimCheckDto | Array<DkimCheckDto>): SecurityBa
       status: 'none',
       label: 'DKIM',
       value: 'no signature',
-      tooltip: 'The message carries no DKIM signature.',
+      details: 'The message carries no DKIM signature.',
     }
   }
   const status = worstStatus(checks.map((check) => check.result))
@@ -166,8 +172,8 @@ export function dkimBadge(dkim?: DkimCheckDto | Array<DkimCheckDto>): SecurityBa
     .map((check) => check.signingDomain)
     .filter((domain): domain is string => Boolean(domain))
   const detail = domains.length > 0 ? domains.join(', ') : `${checks.length} signatures`
-  const value = [worst.result, detail].filter(Boolean).join(' · ')
-  const tooltip = checks
+  const value = [resultWord(worst.result), detail].filter(Boolean).join(' · ')
+  const details = checks
     .map((check, index) => {
       const lines: Array<string> = [
         checks.length > 1 ? `Signature ${index + 1}: ${check.result}` : `Result: ${check.result}`,
@@ -185,7 +191,7 @@ export function dkimBadge(dkim?: DkimCheckDto | Array<DkimCheckDto>): SecurityBa
       return lines.join('\n')
     })
     .join('\n\n')
-  return { key: 'dkim', status, label: 'DKIM', value: value || 'unknown', tooltip }
+  return { key: 'dkim', status, label: 'DKIM', value, details }
 }
 
 export function spfBadge(spf?: SpfCheckDto): SecurityBadge {
@@ -194,8 +200,8 @@ export function spfBadge(spf?: SpfCheckDto): SecurityBadge {
       key: 'spf',
       status: 'none',
       label: 'SPF',
-      value: 'unknown',
-      tooltip: 'No SPF result available for this message.',
+      value: '',
+      details: 'No SPF result available for this message.',
     }
   }
   const lines: Array<string> = [`Result: ${spf.result}`]
@@ -212,8 +218,8 @@ export function spfBadge(spf?: SpfCheckDto): SecurityBadge {
     key: 'spf',
     status: resultStatus(spf.result),
     label: 'SPF',
-    value: [spf.result, spf.domain].filter(Boolean).join(' · ') || 'unknown',
-    tooltip: lines.join('\n'),
+    value: [resultWord(spf.result), spf.domain].filter(Boolean).join(' · '),
+    details: lines.join('\n'),
   }
 }
 
@@ -223,8 +229,8 @@ export function dmarcBadge(dmarc?: DmarcCheckDto): SecurityBadge {
       key: 'dmarc',
       status: 'none',
       label: 'DMARC',
-      value: 'unknown',
-      tooltip: 'No DMARC result available for this message.',
+      value: '',
+      details: 'No DMARC result available for this message.',
     }
   }
   const lines: Array<string> = [`Result: ${dmarc.result}`]
@@ -235,8 +241,8 @@ export function dmarcBadge(dmarc?: DmarcCheckDto): SecurityBadge {
     key: 'dmarc',
     status: resultStatus(dmarc.result),
     label: 'DMARC',
-    value: dmarc.result,
-    tooltip: lines.join('\n'),
+    value: resultWord(dmarc.result) ?? '',
+    details: lines.join('\n'),
   }
 }
 
@@ -246,8 +252,8 @@ export function bimiBadge(bimi?: BimiCheckDto): SecurityBadge {
       key: 'bimi',
       status: 'none',
       label: 'BIMI',
-      value: 'unknown',
-      tooltip: 'No BIMI result available for this message.',
+      value: '',
+      details: 'No BIMI result available for this message.',
     }
   }
   let status: BadgeStatus
@@ -328,7 +334,7 @@ export function bimiBadge(bimi?: BimiCheckDto): SecurityBadge {
   if (bimi.authorityUrl) {
     lines.push(`Authority URL: ${bimi.authorityUrl}`)
   }
-  return { key: 'bimi', status, label: 'BIMI', value, tooltip: lines.join('\n') }
+  return { key: 'bimi', status, label: 'BIMI', value, details: lines.join('\n') }
 }
 
 /** Data URL of the verified BIMI logo, when present (full message only). */

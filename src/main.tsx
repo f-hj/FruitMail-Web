@@ -5,6 +5,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import App from './App'
 import Callback from './Callback'
 import MailLayout from './MailLayout'
+import Settings from './Settings'
 import WriteMail from './WriteMail'
 
 // Carbon uses a semibold weight in a few places (header name, headings), so
@@ -30,6 +31,7 @@ createRoot(rootElement).render(
         <Route element={<App />}>
           <Route path="/writeMail" element={<WriteMail />} />
           <Route path="/writeMail/:inReplyTo" element={<WriteMail />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/:type/:folder" element={<MailLayout />} />
           <Route path="/:type/:folder/:id" element={<MailLayout />} />
           <Route path="*" element={<Navigate to="/new/inbox" replace />} />

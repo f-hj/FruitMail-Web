@@ -199,6 +199,7 @@ const WriteMail = observer(function WriteMail() {
         return
       }
       setConfirmOpen(false)
+      store.showToast({ kind: 'success', title: 'Mail sent', subtitle: `To ${form.to}` })
       navigate('/new/inbox')
     } catch (err) {
       console.error('Failed to send mail:', err)
@@ -294,9 +295,10 @@ const WriteMail = observer(function WriteMail() {
         open={confirmOpen}
         size="lg"
         modalHeading="Confirmation"
-        primaryButtonText={sending ? 'Sending…' : 'Send'}
+        primaryButtonText="Send"
         secondaryButtonText="Cancel"
-        primaryButtonDisabled={sending}
+        loadingStatus={sending ? 'active' : 'inactive'}
+        loadingDescription="Sending…"
         onRequestSubmit={sendMail}
         onRequestClose={() => {
           if (!sending) {

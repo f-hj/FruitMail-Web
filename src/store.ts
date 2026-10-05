@@ -41,6 +41,14 @@ export interface Folders extends FoldersV2Dto {
   doneP: Array<FolderDto>
 }
 
+export interface Toast {
+  /** Distinguishes successive toasts, so each one restarts its auto-dismiss timeout. */
+  id: number
+  kind: 'success' | 'error'
+  title: string
+  subtitle?: string
+}
+
 export function isMailCategory(value?: string): value is MailCategory {
   return value === 'new' || value === 'read' || value === 'done'
 }
@@ -82,8 +90,21 @@ class Store {
   /** Collapsed state of the sidebar category groups, persisted across reloads. */
   collapsed: CollapsedState = loadCollapsedCategories()
 
+  /** Toast notification shown by the app shell, kept across page navigations. */
+  toast: Toast | null = null
+  private toastCount = 0
+
   constructor() {
     makeAutoObservable(this)
+  }
+
+  showToast(toast: Omit<Toast, 'id'>): void {
+    this.toastCount += 1
+    this.toast = { ...toast, id: this.toastCount }
+  }
+
+  dismissToast(): void {
+    this.toast = null
   }
 
   /** `Name <user@domain>` of the user's primary mail address. */

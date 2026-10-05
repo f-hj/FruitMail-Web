@@ -9,19 +9,28 @@ import {
   HeaderName,
   IconButton,
   InlineNotification,
+  OverflowMenu,
+  OverflowMenuItem,
   Search,
   SideNav,
   SideNavItems,
   SideNavMenu,
   SideNavMenuItem,
   SkipToContent,
+  ToastNotification,
 } from '@carbon/react'
 import { Edit, Renew, User } from '@carbon/icons-react'
 import { observer } from 'mobx-react-lite'
-import { useEffect, useState, type ErrorInfo, type MouseEvent as ReactMouseEvent } from 'react'
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type ErrorInfo,
+  type MouseEvent as ReactMouseEvent,
+} from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { getToken, redirectToOauth } from './api'
+import { FRUITICE_ACCOUNT_URL, getToken, logout, redirectToOauth } from './api'
 import type { FolderDto } from './client'
 import store, { type MailCategory } from './store'
 
@@ -104,25 +113,68 @@ const FolderGroup = observer(function FolderGroup({
   )
 })
 
-/** The signed-in user, shown as a tooltip on the user icon in the header. */
-const HeaderUser = observer(function HeaderUser() {
+/** Toast notification raised through `store.showToast`; success toasts close on their own. */
+const AppToast = observer(function AppToast() {
+  const toast = store.toast
+  if (!toast) {
+    return null
+  }
+  return (
+    <ToastNotification
+      key={toast.id}
+      className="app-toast"
+      kind={toast.kind}
+      title={toast.title}
+      subtitle={toast.subtitle}
+      timeout={toast.kind === 'success' ? 6000 : 0}
+      onClose={() => store.dismissToast()}
+    />
+  )
+})
+
+/** Header-sized user icon for the account menu trigger. */
+function UserIcon(props: ComponentProps<typeof User>) {
+  return <User size={20} {...props} />
+}
+
+/**
+ * Signed-in user at the top of the account menu. OverflowMenu injects its item
+ * props (closeMenu, index, ...) into every child: they are deliberately not
+ * forwarded to the DOM, and `disabled` makes keyboard navigation skip it.
+ */
+const AccountMenuUser = observer(function AccountMenuUser(_props: { disabled: true }) {
   const name = store.userName
   const mail = store.userMail
   return (
-    <IconButton
-      kind="ghost"
+    <li className="account-menu-user" role="none">
+      <span className="account-menu-name">{name || 'Not signed in'}</span>
+      {mail && <span className="account-menu-mail">{mail}</span>}
+    </li>
+  )
+})
+
+/** Account menu under the user icon in the header. */
+const AccountMenu = observer(function AccountMenu() {
+  const navigate = useNavigate()
+  return (
+    <OverflowMenu
+      className="account-menu"
       size="lg"
-      align="bottom-end"
-      className="header-user"
-      label={
-        <>
-          {name || 'Not signed in'}
-          {mail && <span className="header-user-mail">{mail}</span>}
-        </>
-      }
+      flipped
+      renderIcon={UserIcon}
+      iconDescription={store.userMail || 'Account'}
+      aria-label="Account"
     >
-      <User size={20} />
-    </IconButton>
+      <AccountMenuUser disabled />
+      <OverflowMenuItem itemText="Settings" hasDivider onClick={() => navigate('/settings')} />
+      <OverflowMenuItem
+        itemText="Fruit'ice account"
+        href={FRUITICE_ACCOUNT_URL}
+        // anchor attributes, spread onto the link but missing from the props type
+        {...{ target: '_blank', rel: 'noreferrer' }}
+      />
+      <OverflowMenuItem itemText="Log out" hasDivider onClick={logout} />
+    </OverflowMenu>
   )
 })
 
@@ -173,7 +225,7 @@ const App = observer(function App() {
           >
             <Edit size={20} />
           </HeaderGlobalAction>
-          <HeaderUser />
+          <AccountMenu />
         </HeaderGlobalBar>
         <SideNav
           aria-label="Folders"
@@ -215,6 +267,7 @@ const App = observer(function App() {
           </ErrorBoundary>
         </ErrorBoundaryContext.Provider>
       </Content>
+      <AppToast />
     </>
   )
 })

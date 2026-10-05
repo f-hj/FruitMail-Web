@@ -17,6 +17,15 @@ export function setToken(token: string): void {
   localStorage.setItem(TOKEN_STORAGE_KEY, token)
 }
 
+/** Fruit'ice account management page. */
+export const FRUITICE_ACCOUNT_URL = 'https://auth.fruitice.fr/account'
+
+/** Forgets the OAuth token and goes back through the OAuth flow. */
+export function logout(): void {
+  localStorage.removeItem(TOKEN_STORAGE_KEY)
+  redirectToOauth()
+}
+
 // Configure the generated hey-api client once for the whole app:
 // - requests target the FruitMail server
 // - the OAuth token from localStorage is sent as `Authorization: Bearer <token>`

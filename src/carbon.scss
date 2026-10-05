@@ -5,9 +5,7 @@
 // 1. The IBM Plex @font-face declarations are disabled ($css--font-face):
 //    the app uses Atkinson Hyperlegible for accessibility, which replaces
 //    Plex via a CSS override in styles.css.
-// 2. The `enable-tile-contrast` flag gives ClickableTiles a 1px border so
-//    the mail cards are clearly delimited from the list background.
-// 3. The UIShell header is re-themed to Carbon brand blue by emitting the
+// 2. The UIShell header is re-themed to Carbon brand blue by emitting the
 //    full White token map with overrides scoped to `.cds--header`; the side
 //    nav (a DOM child of the header) is scoped back to White.
 
@@ -18,7 +16,7 @@
     'enable-v11-release': true,
     'enable-v12-release': false,
     'enable-experimental-tile-contrast': false,
-    'enable-tile-contrast': true,
+    'enable-tile-contrast': false,
     'enable-v12-tile-radio-icons': false,
     'enable-v12-structured-list-visible-icons': false,
     'enable-dialog-element': false,
@@ -35,6 +33,7 @@
 @use '@carbon/colors';
 @use '@carbon/styles/scss/theme';
 @use '@carbon/styles/scss/themes';
+@use '@carbon/styles/scss/type';
 
 /// Carbon brand blue shell for the header bar: blue-60 surface with white
 /// foreground, blue-70/80 for hover/active states and dark-blue tooltips.
@@ -73,7 +72,62 @@ header.cds--header {
   @include theme.theme($blue-shell);
 }
 
-// the side nav lives inside the header element but keeps the White theme
-nav.cds--side-nav {
+// the side nav lives inside the header element but keeps the White theme;
+// so does the open account menu trigger, which joins the (White) menu below it
+nav.cds--side-nav,
+header.cds--header .cds--overflow-menu--open {
   @include theme.theme(themes.$white);
+}
+
+// settings page headings (Carbon heading-04/03 are regular weight)
+.settings h1 {
+  @include type.type-style('heading-04');
+}
+
+.settings h2 {
+  @include type.type-style('heading-03');
+}
+
+.mail-list .cds--tile--clickable {
+  // the tile is a Carbon Link, whose active/focus styles underline and recolor it
+  &:active,
+  &:focus {
+    color: theme.$text-primary;
+    text-decoration: none;
+  }
+
+  // selected mail: same treatment as Carbon's current side nav link
+  &[aria-current='page'] {
+    background-color: theme.$background-selected;
+
+    &:hover {
+      background-color: theme.$background-selected-hover;
+    }
+
+    &::before {
+      position: absolute;
+      background-color: theme.$border-interactive;
+      content: '';
+      inline-size: 3px;
+      inset-block: 0;
+      inset-inline-start: 0;
+    }
+  }
+}
+
+// Mail tile and mail view header hierarchy, regular-weight Carbon type styles only
+.mail-tile-subject {
+  @include type.type-style('body-compact-02');
+}
+
+.mail-tile-from,
+.mail-view-from {
+  @include type.type-style('body-compact-01');
+  color: theme.$text-secondary;
+}
+
+.mail-tile-date,
+.mail-view-date {
+  @include type.type-style('label-01');
+  color: theme.$text-helper;
 }
