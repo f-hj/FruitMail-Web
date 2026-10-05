@@ -44,6 +44,23 @@ export function isMailCategory(value?: string): value is MailCategory {
   return value === 'new' || value === 'read' || value === 'done'
 }
 
+const COLLAPSED_STORAGE_KEY = 'fruitmail.collapsedCategories'
+
+type CollapsedState = Record<MailCategory, boolean>
+
+function loadCollapsedCategories(): CollapsedState {
+  const collapsed: CollapsedState = { new: false, read: false, done: false }
+  try {
+    const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY)
+    if (raw) {
+      Object.assign(collapsed, JSON.parse(raw) as Partial<CollapsedState>)
+    }
+  } catch {
+    // missing or corrupted entry - start fully expanded
+  }
+  return collapsed
+}
+
 class Store {
   user: UserConfig = {}
 
@@ -60,6 +77,9 @@ class Store {
   currentType: MailCategory = 'new'
   currentFolder = 'inbox'
   currentFolderMails: Array<Mail> = []
+
+  /** Collapsed state of the sidebar category groups, persisted across reloads. */
+  collapsed: CollapsedState = loadCollapsedCategories()
 
   constructor() {
     makeAutoObservable(this)
@@ -137,6 +157,16 @@ class Store {
     this.folders.newP = this.folders.new.filter(matches)
     this.folders.readP = this.folders.read.filter(matches)
     this.folders.doneP = this.folders.done.filter(matches)
+  }
+
+  /** Collapses or expands a sidebar category group. */
+  toggleCategory(category: MailCategory): void {
+    this.collapsed[category] = !this.collapsed[category]
+    try {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(this.collapsed))
+    } catch {
+      // storage unavailable (private browsing, ...): keep the state in memory
+    }
   }
 
   /**

@@ -4,7 +4,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { getToken, redirectToOauth } from './api'
 import type { FolderDto } from './client'
-import { NewIcon, RefreshIcon, UserIcon } from './icons'
+import { ChevronIcon, NewIcon, RefreshIcon, UserIcon } from './icons'
 import store, { type MailCategory } from './store'
 
 interface FolderGroupProps {
@@ -13,26 +13,42 @@ interface FolderGroupProps {
   folders: Array<FolderDto>
 }
 
-function FolderGroup({ title, category, folders }: FolderGroupProps) {
+const FolderGroup = observer(function FolderGroup({
+  title,
+  category,
+  folders,
+}: FolderGroupProps) {
+  const collapsed = store.collapsed[category]
   return (
     <section className="folder-group">
-      <h3 className="folder-group-title">{title}</h3>
-      <ul className="folder-list">
-        {folders.map((folder) => (
-          <li key={`${category}_${folder.name}`}>
-            <NavLink
-              className={({ isActive }) => `folder-item${isActive ? ' active' : ''}`}
-              to={`/${category}/${encodeURIComponent(folder.name)}`}
-            >
-              <span className="folder-name">{folder.name}</span>
-              <span className="folder-count">{folder.count ?? 0}</span>
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+      <button
+        type="button"
+        className="folder-group-toggle"
+        aria-expanded={!collapsed}
+        title={collapsed ? `Expand ${title}` : `Collapse ${title}`}
+        onClick={() => store.toggleCategory(category)}
+      >
+        <ChevronIcon size={14} />
+        {title}
+      </button>
+      {!collapsed && (
+        <ul className="folder-list">
+          {folders.map((folder) => (
+            <li key={`${category}_${folder.name}`}>
+              <NavLink
+                className={({isActive }) => `folder-item${isActive ? ' active' : ''}`}
+                to={`/${category}/${encodeURIComponent(folder.name)}`}
+              >
+                <span className="folder-name">{folder.name}</span>
+                <span className="folder-count">{folder.count ?? 0}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
-}
+})
 
 /**
  * Application shell: folder sidebar on the left, routed content on the right.
