@@ -1,4 +1,4 @@
-import { InlineLoading } from '@carbon/react'
+import { ClickableTile, InlineLoading } from '@carbon/react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
@@ -35,7 +35,7 @@ function BimiLogo({ mailId }: { mailId: string }) {
  * (pages of 15 mails, from the newest to the oldest).
  */
 const MailList = observer(function MailList() {
-  const { type, folder } = useParams()
+  const { type, folder, id: selectedId } = useParams()
   const category = isMailCategory(type) ? type : 'new'
   const [loadingMore, setLoadingMore] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -66,22 +66,31 @@ const MailList = observer(function MailList() {
 
   return (
     <div className="mail-list" ref={scrollRef} onScroll={handleScroll}>
-      {store.currentFolderMails.map((msg) => (
-        <NavLink
-          key={msg.id}
-          to={`/${category}/${encodeURIComponent(folder ?? '')}/${encodeURIComponent(msg.id)}`}
-          className={({ isActive }) => `mail-list-item${isActive ? ' selected' : ''}`}
-        >
-          <div className="mail-list-item-subject">{msg.subject || '(no subject)'}</div>
-          <div className="mail-list-item-from">
-            {msg.bimi?.verified && <BimiLogo mailId={msg.id} />}
-            {formatAddresses(msg.from)}
-          </div>
-          <time className="mail-list-item-date" dateTime={new Date(msg.date).toISOString()}>
-            {formatDate(msg.date)}
-          </time>
-        </NavLink>
-      ))}
+      {store.currentFolderMails.map((msg) => {
+        const active = selectedId === msg.id
+        const to = `/${category}/${encodeURIComponent(folder ?? '')}/${encodeURIComponent(msg.id)}`
+        return (
+          <ClickableTile
+            key={msg.id}
+            className={`mail-tile${active ? ' mail-tile--selected' : ''}`}
+            href={to}
+            aria-current={active ? 'page' : undefined}
+            // ClickableTile does not declare the polymorphic props of its
+            // underlying link, but spreads everything onto it: render the
+            // tile as a react-router NavLink for client-side navigation
+            {...{ as: NavLink, to }}
+          >
+            <div className="mail-tile-subject">{msg.subject || '(no subject)'}</div>
+            <div className="mail-tile-from">
+              {msg.bimi?.verified && <BimiLogo mailId={msg.id} />}
+              {formatAddresses(msg.from)}
+            </div>
+            <time className="mail-tile-date" dateTime={new Date(msg.date).toISOString()}>
+              {formatDate(msg.date)}
+            </time>
+          </ClickableTile>
+        )
+      })}
       {store.currentFolderMails.length === 0 && !loadingMore && (
         <div className="mail-list-empty">No mails in this folder</div>
       )}

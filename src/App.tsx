@@ -173,16 +173,6 @@ const App = observer(function App() {
           >
             <Edit size={20} />
           </HeaderGlobalAction>
-          <HeaderGlobalAction
-            aria-label="Refresh folders"
-            onClick={() => {
-              if (!store.isGettingFolders) {
-                store.getFolders()
-              }
-            }}
-          >
-            <Renew size={20} className={store.isGettingFolders ? 'spinning' : undefined} />
-          </HeaderGlobalAction>
           <HeaderUser />
         </HeaderGlobalBar>
         <SideNav
@@ -191,7 +181,7 @@ const App = observer(function App() {
           onClick={handleSideNavClick}
           onOverlayClick={() => setIsSideNavExpanded(false)}
         >
-          <div className="folder-search">
+          <div className="folder-toolbar">
             <Search
               id="folder-search-input"
               size="sm"
@@ -199,6 +189,16 @@ const App = observer(function App() {
               placeholder="Filter folders"
               onChange={(event) => store.filterFolders(event.target.value)}
             />
+            <IconButton
+              kind="ghost"
+              size="sm"
+              align="bottom-end"
+              label="Refresh folders"
+              disabled={store.isGettingFolders}
+              onClick={() => store.getFolders()}
+            >
+              <Renew className={store.isGettingFolders ? 'spinning' : undefined} />
+            </IconButton>
           </div>
           <SideNavItems>
             <FolderGroup title="Fresh" category="new" folders={store.folders.newP} />

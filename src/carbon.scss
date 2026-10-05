@@ -1,8 +1,79 @@
 // Carbon Design System styles (White theme, the v11 default).
 //
-// The IBM Plex @font-face declarations are disabled so no Plex font files are
-// downloaded or bundled: the app uses Atkinson Hyperlegible for accessibility,
-// which replaces Plex via a CSS override in styles.css.
+// Adjustments on top of stock Carbon:
+//
+// 1. The IBM Plex @font-face declarations are disabled ($css--font-face):
+//    the app uses Atkinson Hyperlegible for accessibility, which replaces
+//    Plex via a CSS override in styles.css.
+// 2. The `enable-tile-contrast` flag gives ClickableTiles a 1px border so
+//    the mail cards are clearly delimited from the list background.
+// 3. The UIShell header is re-themed to Carbon brand blue by emitting the
+//    full White token map with overrides scoped to `.cds--header`; the side
+//    nav (a DOM child of the header) is scoped back to White.
+
+@use '@carbon/styles/scss/feature-flags' with (
+  $feature-flags: (
+    'enable-css-custom-properties': true,
+    'enable-css-grid': true,
+    'enable-v11-release': true,
+    'enable-v12-release': false,
+    'enable-experimental-tile-contrast': false,
+    'enable-tile-contrast': true,
+    'enable-v12-tile-radio-icons': false,
+    'enable-v12-structured-list-visible-icons': false,
+    'enable-dialog-element': false,
+    'enable-v12-toggle-reduced-label-spacing': false,
+    'enable-presence': false,
+  )
+);
+
 @use '@carbon/styles' with (
   $css--font-face: false
 );
+
+@use 'sass:map';
+@use '@carbon/colors';
+@use '@carbon/styles/scss/theme';
+@use '@carbon/styles/scss/themes';
+
+/// Carbon brand blue shell for the header bar: blue-60 surface with white
+/// foreground, blue-70/80 for hover/active states and dark-blue tooltips.
+$blue-shell: map.merge(themes.$white, (
+  background: colors.$blue-60,
+  background-hover: colors.$blue-70,
+  background-active: colors.$blue-80,
+  background-selected: colors.$blue-70,
+  background-selected-hover: colors.$blue-80,
+  background-inverse: colors.$blue-80,
+  background-inverse-hover: colors.$blue-90,
+  layer-hover: colors.$blue-70,
+  layer-active: colors.$blue-80,
+  layer-selected: colors.$blue-70,
+  layer-selected-hover: colors.$blue-80,
+  text-primary: colors.$white,
+  text-secondary: colors.$blue-20,
+  text-inverse: colors.$white,
+  icon-primary: colors.$white,
+  icon-secondary: colors.$blue-20,
+  focus: colors.$white,
+  interactive: colors.$white,
+  link-primary: colors.$white,
+  link-primary-hover: colors.$blue-20,
+  border-subtle: colors.$blue-70,
+  border-subtle-00: colors.$blue-70,
+  border-subtle-01: colors.$blue-70,
+  border-inverse: colors.$blue-80,
+  border-interactive: colors.$white,
+));
+
+// The element-qualified selectors outrank the `.cds--header`/`.cds--side-nav`
+// layer-context rules Carbon emits, so the scoped themes win regardless of
+// rule order in the (minified) bundle.
+header.cds--header {
+  @include theme.theme($blue-shell);
+}
+
+// the side nav lives inside the header element but keeps the White theme
+nav.cds--side-nav {
+  @include theme.theme(themes.$white);
+}
