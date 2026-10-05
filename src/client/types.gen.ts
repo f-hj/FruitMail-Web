@@ -54,13 +54,47 @@ export type SorryResponseDto = {
     sorry: boolean;
 };
 
+export type BlacklistFromFilterDto = {
+    /**
+     * Sender mail address
+     */
+    address?: string;
+    /**
+     * Sender display name
+     */
+    name?: string;
+};
+
+export type BlacklistFilterDto = {
+    /**
+     * Drop incoming mails whose From matches exactly: any field set here (address, name) equal to the one of a sender. Unset fields are ignored, so `{ address }` only matches on the address.
+     */
+    from?: BlacklistFromFilterDto;
+    /**
+     * Drop incoming mails whose From contains one of the substrings set here (address or name).
+     */
+    fromIncludes?: BlacklistFromFilterDto;
+    /**
+     * Drop incoming mails whose text body (or the text derived from the html body) contains this substring.
+     */
+    text?: string;
+    /**
+     * Drop incoming mails whose subject is exactly this.
+     */
+    subject?: string;
+    /**
+     * Drop incoming mails delivered to exactly this folder.
+     */
+    folder?: string;
+};
+
 export type BlacklistEntryDto = {
     /**
-     * Blacklist filter added to the user profile
+     * Blacklist filter added to the user profile. Incoming mails matching any stored filter are dropped on arrival; `POST /applyBlacklist` deletes the already-received mails matching the filters.
+     *
+     * Supported criteria: `from` (exact match on the From address or name), `fromIncludes` (substring match on the From address or name), `text` (substring of the mail body), and exact match on any other top-level mail field (`subject`, `folder`, `domain`, ...).
      */
-    element: {
-        [key: string]: unknown;
-    };
+    element: BlacklistFilterDto;
 };
 
 export type MailAddressDto = {
@@ -148,6 +182,100 @@ export type DmarcCheckDto = {
     comment?: string;
 };
 
+export type BimiCertificateDto = {
+    /**
+     * True when the certificate chain is signed by a known VMC issuer (DigiCert, GlobalSign, SSL.com, legacy Entrust)
+     */
+    trusted?: boolean;
+    /**
+     * 'VMC' (registered mark) or 'CMC' (common mark)
+     */
+    type?: 'VMC' | 'CMC';
+    /**
+     * Certificate subject fields (CN, O, markType, ...)
+     */
+    subject?: {
+        [key: string]: unknown;
+    };
+    /**
+     * Domains covered by the certificate
+     */
+    subjectAltName?: Array<string>;
+    /**
+     * Certificate issuer fields
+     */
+    issuer?: {
+        [key: string]: unknown;
+    };
+    validFrom?: string;
+    validTo?: string;
+    serialNumber?: string;
+    fingerprint?: string;
+};
+
+export type BimiErrorDto = {
+    /**
+     * Human-readable error message
+     */
+    message: string;
+    /**
+     * Error code (HTTP_REQUEST_FAILED, INVALID_CHAIN, INVALID_LOGO_HASH, VMC_DOMAIN_MISMATCH, SVG_VALIDATION_FAILED, ...)
+     */
+    code?: string;
+};
+
+export type BimiCheckDto = {
+    /**
+     * BIMI verification result: pass when a valid BIMI record was found for the (DMARC-passing) sender, skipped when DMARC did not pass or the policy is too lax, none when the sender publishes no record
+     */
+    result: 'pass' | 'fail' | 'skipped' | 'temperr' | 'none';
+    comment?: string;
+    /**
+     * BIMI selector the record was found for
+     */
+    selector?: string;
+    /**
+     * Sender domain the BIMI record belongs to
+     */
+    domain?: string;
+    /**
+     * Raw BIMI DNS TXT record
+     */
+    rr?: string;
+    /**
+     * Logo SVG URL from the BIMI record
+     */
+    logoUrl?: string;
+    /**
+     * VMC (Verified Mark Certificate) URL from the BIMI record
+     */
+    authorityUrl?: string;
+    /**
+     * Base64 of the logo SVG, when it could be downloaded and passed the BIMI SVG validation. Excluded from the list endpoints: use GET /msg/{id} or GET /msg/{id}/bimi-logo
+     */
+    logo?: string;
+    /**
+     * True when the logo passed every check: either no VMC is published, or the VMC is valid and its embedded logo hash and domain match. Clients should only display the logo when verified
+     */
+    verified?: boolean;
+    /**
+     * Whether the downloaded logo matches the hash embedded in the VMC
+     */
+    logoHashMatch?: boolean;
+    /**
+     * Whether the sender domain is covered by the VMC
+     */
+    domainVerified?: boolean;
+    /**
+     * VMC certificate details, saved whenever they could be read, even when the chain is not signed by a known authority (check `trusted`)
+     */
+    certificate?: BimiCertificateDto;
+    /**
+     * Logo/certificate download or validation error, when any
+     */
+    error?: BimiErrorDto;
+};
+
 export type MailDto = {
     /**
      * Unique time-sortable mail id (ObjectId hex string; lexicographic order matches reception time)
@@ -193,6 +321,10 @@ export type MailDto = {
      * DMARC verification result
      */
     dmarc?: DmarcCheckDto;
+    /**
+     * BIMI (Brand Indicators for Message Identification) details of the sender: brand logo SVG, VMC certificate and verification results
+     */
+    bimi?: BimiCheckDto;
 };
 
 export type MailActionsDto = {
@@ -539,6 +671,37 @@ export type MailsControllerViewMessageResponses = {
 };
 
 export type MailsControllerViewMessageResponse = MailsControllerViewMessageResponses[keyof MailsControllerViewMessageResponses];
+
+export type MailsControllerBimiLogoData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/msg/{id}/bimi-logo';
+};
+
+export type MailsControllerBimiLogoErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Mail or BIMI logo not found
+     */
+    404: unknown;
+};
+
+export type MailsControllerBimiLogoError = MailsControllerBimiLogoErrors[keyof MailsControllerBimiLogoErrors];
+
+export type MailsControllerBimiLogoResponses = {
+    /**
+     * BIMI logo SVG
+     */
+    200: Blob | File;
+};
+
+export type MailsControllerBimiLogoResponse = MailsControllerBimiLogoResponses[keyof MailsControllerBimiLogoResponses];
 
 export type MailsControllerMessageActionsData = {
     body?: never;

@@ -75,6 +75,19 @@ export function messageViewUrl(mailId: string): string {
   return url.toString()
 }
 
+/**
+ * URL of the verified BIMI logo of a message (`GET /msg/{id}/bimi-logo`),
+ * suitable for an `<img src>` — the logo itself is not sent by list endpoints.
+ */
+export function bimiLogoUrl(mailId: string): string {
+  const url = new URL(`${SERVER_URL}/msg/${encodeURIComponent(mailId)}/bimi-logo`)
+  const token = getToken()
+  if (token) {
+    url.searchParams.set('token', token)
+  }
+  return url.toString()
+}
+
 /** Handles an error payload returned by the API (`{ data: undefined, error }`). */
 export function handleApiError(error: unknown): void {
   if ((error as AuthErrorDto | undefined)?.err === 'invalid token') {

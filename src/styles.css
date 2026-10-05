@@ -262,7 +262,8 @@ strong {
   display: flex;
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  /* visible so detail tooltips can overlay the message body */
+  overflow: visible;
 }
 
 .mail-layout {
@@ -395,6 +396,135 @@ strong {
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+/* Message details (security badges + tooltips) ------------------------------ */
+
+.mail-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+
+.tooltip:focus {
+  outline: none;
+}
+
+.tooltip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tooltip-content {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 8px 10px;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  cursor: auto;
+}
+
+.tooltip:hover .tooltip-content,
+.tooltip:focus-visible .tooltip-content,
+.tooltip:focus-within .tooltip-content {
+  display: block;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.badge-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+
+.badge-value {
+  display: inline-flex;
+  align-items: center;
+  overflow-wrap: anywhere;
+}
+
+/* squared status dot, matching the squared theme */
+.badge-value::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge.ok .badge-value {
+  color: #0a7d32;
+}
+
+.badge.warn {
+  border-color: rgba(180, 83, 9, 0.4);
+}
+
+.badge.warn .badge-value {
+  color: #b45309;
+}
+
+.badge.bad {
+  border-color: rgba(224, 35, 77, 0.45);
+}
+
+.badge.bad .badge-value {
+  color: var(--danger);
+}
+
+.badge.none .badge-value {
+  color: var(--text-muted);
+}
+
+.badge-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+/* BIMI logo, in the mail list and next to the sender in the header */
+.bimi-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  vertical-align: -0.2em;
+  margin-right: 6px;
+  border-radius: var(--radius);
 }
 
 /* Attachments --------------------------------------------------------------- */

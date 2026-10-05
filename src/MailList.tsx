@@ -2,8 +2,32 @@ import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useParams } from 'react-router-dom'
 
+import { bimiLogoUrl } from './api'
 import { formatAddresses, formatDate } from './format'
 import store, { isMailCategory } from './store'
+
+/**
+ * Verified BIMI brand logo. List endpoints do not include the logo itself,
+ * so it is loaded from `GET /msg/{id}/bimi-logo` and hidden if unavailable.
+ */
+function BimiLogo({ mailId }: { mailId: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return null
+  }
+  return (
+    <img
+      className="bimi-logo"
+      src={bimiLogoUrl(mailId)}
+      alt="Verified brand logo"
+      title="BIMI verified sender"
+      width={16}
+      height={16}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  )
+}
 
 /**
  * Scrollable list of the mails of the current folder, with infinite scrolling
@@ -48,7 +72,10 @@ const MailList = observer(function MailList() {
           className={({ isActive }) => `mail-list-item${isActive ? ' selected' : ''}`}
         >
           <div className="mail-list-item-subject">{msg.subject || '(no subject)'}</div>
-          <div className="mail-list-item-from">{formatAddresses(msg.from)}</div>
+          <div className="mail-list-item-from">
+            {msg.bimi?.verified && <BimiLogo mailId={msg.id} />}
+            {formatAddresses(msg.from)}
+          </div>
           <time className="mail-list-item-date" dateTime={new Date(msg.date).toISOString()}>
             {formatDate(msg.date)}
           </time>

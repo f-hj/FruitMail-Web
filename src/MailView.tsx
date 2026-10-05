@@ -5,7 +5,15 @@ import { Link, useParams } from 'react-router-dom'
 import { attachmentUrl, handleApiError, messageViewUrl } from './api'
 import { mailsControllerApplyAction, mailsControllerGetMessage } from './client'
 import { escapeHtml, formatAddresses } from './format'
-import { AttachmentIcon, CheckIcon, PrintIcon, ReplyIcon } from './icons'
+import { AttachmentIcon, CheckIcon, PrintIcon, ReplyIcon, ShieldIcon } from './icons'
+import {
+  bimiBadge,
+  bimiLogoDataUrl,
+  dkimBadge,
+  dmarcBadge,
+  spfBadge,
+  tlsBadge,
+} from './security'
 import store, { type Mail } from './store'
 
 /**
@@ -59,6 +67,8 @@ const MailView = observer(function MailView() {
   const [msg, setMsg] = useState<Mail | null>(null)
   const [failed, setFailed] = useState(false)
   const [showAttachments, setShowAttachments] = useState(false)
+  // kept open across messages on purpose, to compare details while browsing
+  const [showDetails, setShowDetails] = useState(false)
 
   useEffect(() => {
     setMsg(null)
@@ -145,15 +155,38 @@ const MailView = observer(function MailView() {
   }
 
   const attachments = msg.attachments ?? []
+  const logoUrl = bimiLogoDataUrl(msg.bimi)
+  const badges = [
+    tlsBadge(msg.connection),
+    dkimBadge(msg.dkim),
+    spfBadge(msg.spf),
+    dmarcBadge(msg.dmarc),
+    bimiBadge(msg.bimi),
+  ]
 
   return (
     <div className="mail-view">
       <header className="mail-view-header">
         <div className="mail-view-title">
           <h2>{msg.subject || '(no subject)'}</h2>
-          <span className="mail-view-from">From: {formatAddresses(msg.from)}</span>
+          <span className="mail-view-from">
+            {logoUrl && (
+              <img className="bimi-logo" src={logoUrl} alt="" title="BIMI verified sender" />
+            )}
+            From: {formatAddresses(msg.from)}
+          </span>
         </div>
         <div className="mail-view-actions">
+          <button
+            type="button"
+            className="icon-button"
+            title="Message details"
+            aria-expanded={showDetails}
+            aria-controls="mail-details"
+            onClick={() => setShowDetails((value) => !value)}
+          >
+            <ShieldIcon />
+          </button>
           <Link
             className="icon-button"
             to={`/writeMail?replyToMsg=${encodeURIComponent(msg.id)}`}
@@ -213,6 +246,24 @@ const MailView = observer(function MailView() {
           )}
         </div>
       </header>
+      {showDetails && (
+        <div className="mail-details" id="mail-details">
+          {badges.map((badge) => (
+            <span key={badge.key} className="tooltip" tabIndex={0}>
+              <span className={`badge ${badge.status}`}>
+                {badge.key === 'bimi' && logoUrl && (
+                  <img className="badge-logo" src={logoUrl} alt="" />
+                )}
+                <span className="badge-label">{badge.label}</span>
+                <span className="badge-value">{badge.value}</span>
+              </span>
+              <span className="tooltip-content" role="tooltip">
+                {badge.tooltip}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
       <iframe
         className="mail-view-body"
         title="Mail content"
