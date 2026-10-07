@@ -3,10 +3,10 @@ import type {
   ConnectionDto,
   DkimCheckDto,
   DmarcCheckDto,
+  SpamCheckDto,
   SpfCheckDto,
 } from './client'
 import { asArray } from './format'
-import type { SpamCheck } from './store'
 
 export type BadgeStatus = 'ok' | 'warn' | 'bad' | 'none'
 
@@ -338,7 +338,7 @@ export function bimiBadge(bimi?: BimiCheckDto): SecurityBadge {
   return { key: 'bimi', status, label: 'BIMI', value, details: lines.join('\n') }
 }
 
-export function spamBadge(spam?: SpamCheck): SecurityBadge {
+export function spamBadge(spam?: SpamCheckDto): SecurityBadge {
   if (!spam) {
     return {
       key: 'spam',

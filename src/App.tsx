@@ -156,6 +156,7 @@ const AccountMenuUser = observer(function AccountMenuUser(_props: { disabled: tr
 /** Account menu under the user icon in the header. */
 const AccountMenu = observer(function AccountMenu() {
   const navigate = useNavigate()
+  const isAdmin = store.isAdmin === true
   return (
     <OverflowMenu
       className="account-menu"
@@ -166,6 +167,13 @@ const AccountMenu = observer(function AccountMenu() {
       aria-label="Account"
     >
       <AccountMenuUser disabled />
+      {isAdmin && (
+        <OverflowMenuItem
+          itemText="DMARC Admin"
+          hasDivider
+          onClick={() => navigate('/admin/dmarc')}
+        />
+      )}
       <OverflowMenuItem itemText="Settings" hasDivider onClick={() => navigate('/settings')} />
       <OverflowMenuItem
         itemText="Fruit'ice account"
@@ -197,6 +205,7 @@ const App = observer(function App() {
     }
     store.getFolders()
     store.getUserConfig()
+    store.checkAdminAccess()
   }, [])
 
   /** On small screens, close the overlaying side nav after a link is followed. */

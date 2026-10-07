@@ -276,6 +276,37 @@ export type BimiCheckDto = {
     error?: BimiErrorDto;
 };
 
+export type SpamRuleDto = {
+    /**
+     * SpamAssassin rule name
+     */
+    name: string;
+    /**
+     * Score added by the rule
+     */
+    score: number;
+    description?: string;
+};
+
+export type SpamCheckDto = {
+    /**
+     * Total score (higher is spammier)
+     */
+    score: number;
+    /**
+     * Spam threshold
+     */
+    required: number;
+    /**
+     * score >= required
+     */
+    isSpam: boolean;
+    /**
+     * Matched rules
+     */
+    rules: Array<SpamRuleDto>;
+};
+
 export type MailDto = {
     /**
      * Unique time-sortable mail id (ObjectId hex string; lexicographic order matches reception time)
@@ -325,6 +356,10 @@ export type MailDto = {
      * BIMI (Brand Indicators for Message Identification) details of the sender: brand logo SVG, VMC certificate and verification results
      */
     bimi?: BimiCheckDto;
+    /**
+     * SpamAssassin score: Razor, Pyzor and DCC crowd networks, DNS blocklists and content rules (absent when spamd is not configured)
+     */
+    spam?: SpamCheckDto;
 };
 
 export type MailActionsDto = {
@@ -397,6 +432,263 @@ export type FoldersV2Dto = {
      * Folders with done mails
      */
     done: Array<FolderDto>;
+};
+
+export type AdminForbiddenDto = {
+    sorry: boolean;
+    err: string;
+};
+
+export type DmarcStatsOverviewDto = {
+    /**
+     * Total number of stored DMARC reports
+     */
+    totalReports: number;
+    /**
+     * Total messages across all reports
+     */
+    totalMessages: number;
+    /**
+     * Messages passing DMARC (aligned DKIM or SPF)
+     */
+    totalPass: number;
+    /**
+     * Messages failing DMARC
+     */
+    totalFail: number;
+    /**
+     * Percentage of messages passing DMARC (0-100)
+     */
+    passRate: number;
+    /**
+     * Number of distinct reported domains
+     */
+    domainCount: number;
+    /**
+     * Number of distinct reporter organizations
+     */
+    reporterCount: number;
+    /**
+     * Timestamp of the first report (ms)
+     */
+    firstReport?: number;
+    /**
+     * Timestamp of the last report (ms)
+     */
+    lastReport?: number;
+};
+
+export type DmarcTimelineEntryDto = {
+    /**
+     * Day (YYYY-MM-DD)
+     */
+    date: string;
+    /**
+     * Number of reports received that day
+     */
+    reports: number;
+    /**
+     * Total messages reported that day
+     */
+    messages: number;
+    /**
+     * Messages passing DMARC that day
+     */
+    pass: number;
+    /**
+     * Messages failing DMARC that day
+     */
+    fail: number;
+};
+
+export type DmarcTopFailingIpDto = {
+    /**
+     * Source IP address
+     */
+    sourceIp: string;
+    /**
+     * Number of messages from this IP failing DMARC
+     */
+    failedMessages: number;
+    /**
+     * Number of reports mentioning this IP
+     */
+    reports: number;
+    /**
+     * Reported domains this IP failed for
+     */
+    domains: Array<string>;
+    /**
+     * Last time this IP was seen (ms timestamp)
+     */
+    lastSeen: number;
+};
+
+export type DmarcTopFailingDomainDto = {
+    /**
+     * Header-From domain
+     */
+    headerFrom: string;
+    /**
+     * Number of messages from this domain failing DMARC
+     */
+    failedMessages: number;
+    /**
+     * Number of reports mentioning this domain
+     */
+    reports: number;
+    /**
+     * Last time this domain was seen (ms timestamp)
+     */
+    lastSeen: number;
+};
+
+export type DmarcDomainStatsDto = {
+    /**
+     * Reported domain
+     */
+    domain: string;
+    /**
+     * Number of reports for this domain
+     */
+    reports: number;
+    /**
+     * Total messages reported for this domain
+     */
+    messages: number;
+    /**
+     * Messages passing DMARC
+     */
+    pass: number;
+    /**
+     * Messages failing DMARC
+     */
+    fail: number;
+    /**
+     * Pass rate percentage (0-100)
+     */
+    passRate: number;
+    /**
+     * First report timestamp (ms)
+     */
+    firstReport: number;
+    /**
+     * Last report timestamp (ms)
+     */
+    lastReport: number;
+};
+
+export type DmarcDispositionStatsDto = {
+    /**
+     * DMARC disposition applied by receivers
+     */
+    disposition: 'none' | 'quarantine' | 'reject';
+    /**
+     * Number of messages with this disposition
+     */
+    messages: number;
+    /**
+     * Number of reports containing this disposition
+     */
+    reports: number;
+};
+
+export type DmarcReporterStatsDto = {
+    /**
+     * Reporter organization name
+     */
+    orgName: string;
+    /**
+     * Number of reports sent by this reporter
+     */
+    reports: number;
+    /**
+     * Total messages across this reporter's reports
+     */
+    messages: number;
+    /**
+     * Messages passing DMARC
+     */
+    pass: number;
+    /**
+     * Number of distinct domains reported
+     */
+    domainCount: number;
+    /**
+     * First report timestamp (ms)
+     */
+    firstReport: number;
+    /**
+     * Last report timestamp (ms)
+     */
+    lastReport: number;
+};
+
+export type DmarcReportSummaryDto = {
+    /**
+     * Report id
+     */
+    id: string;
+    /**
+     * Reported domain
+     */
+    domain?: string;
+    /**
+     * Reception timestamp (ms)
+     */
+    receivedAt: number;
+    /**
+     * Mailbox the report was sent to
+     */
+    rcptTo: string;
+    /**
+     * Reporter organization name
+     */
+    orgName: string;
+    /**
+     * Report ID from the reporter
+     */
+    reportId: string;
+    /**
+     * Total messages in the report
+     */
+    messageCount: number;
+    /**
+     * Messages passing DMARC
+     */
+    passCount: number;
+    /**
+     * DMARC policy: none, quarantine or reject
+     */
+    policy?: string;
+    /**
+     * Percentage of policy applied
+     */
+    pct?: number;
+    /**
+     * Report coverage start (ms)
+     */
+    dateRangeBegin?: number;
+    /**
+     * Report coverage end (ms)
+     */
+    dateRangeEnd?: number;
+};
+
+export type DmarcReportListDto = {
+    /**
+     * Total number of stored reports
+     */
+    total: number;
+    /**
+     * Number of reports returned in this page
+     */
+    count: number;
+    /**
+     * Offset used for this page
+     */
+    offset: number;
+    reports: Array<DmarcReportSummaryDto>;
 };
 
 export type HealthControllerHealthData = {
@@ -885,6 +1177,270 @@ export type WebhooksControllerSendgridData = {
 export type WebhooksControllerSendgridResponses = {
     /**
      * Events accepted (empty body)
+     */
+    200: unknown;
+};
+
+export type DmarcStatsControllerGetOverviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dmarc/overview';
+};
+
+export type DmarcStatsControllerGetOverviewErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetOverviewError = DmarcStatsControllerGetOverviewErrors[keyof DmarcStatsControllerGetOverviewErrors];
+
+export type DmarcStatsControllerGetOverviewResponses = {
+    200: DmarcStatsOverviewDto;
+};
+
+export type DmarcStatsControllerGetOverviewResponse = DmarcStatsControllerGetOverviewResponses[keyof DmarcStatsControllerGetOverviewResponses];
+
+export type DmarcStatsControllerGetTimelineData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Number of days to include (default 30, max 365)
+         */
+        days?: number;
+    };
+    url: '/admin/dmarc/timeline';
+};
+
+export type DmarcStatsControllerGetTimelineErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetTimelineError = DmarcStatsControllerGetTimelineErrors[keyof DmarcStatsControllerGetTimelineErrors];
+
+export type DmarcStatsControllerGetTimelineResponses = {
+    200: Array<DmarcTimelineEntryDto>;
+};
+
+export type DmarcStatsControllerGetTimelineResponse = DmarcStatsControllerGetTimelineResponses[keyof DmarcStatsControllerGetTimelineResponses];
+
+export type DmarcStatsControllerGetTopFailingIpsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Maximum number of IPs to return (default 20, max 100)
+         */
+        limit?: number;
+    };
+    url: '/admin/dmarc/top-failing-ips';
+};
+
+export type DmarcStatsControllerGetTopFailingIpsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetTopFailingIpsError = DmarcStatsControllerGetTopFailingIpsErrors[keyof DmarcStatsControllerGetTopFailingIpsErrors];
+
+export type DmarcStatsControllerGetTopFailingIpsResponses = {
+    200: Array<DmarcTopFailingIpDto>;
+};
+
+export type DmarcStatsControllerGetTopFailingIpsResponse = DmarcStatsControllerGetTopFailingIpsResponses[keyof DmarcStatsControllerGetTopFailingIpsResponses];
+
+export type DmarcStatsControllerGetTopFailingDomainsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Maximum number of domains to return (default 20, max 100)
+         */
+        limit?: number;
+    };
+    url: '/admin/dmarc/top-failing-domains';
+};
+
+export type DmarcStatsControllerGetTopFailingDomainsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetTopFailingDomainsError = DmarcStatsControllerGetTopFailingDomainsErrors[keyof DmarcStatsControllerGetTopFailingDomainsErrors];
+
+export type DmarcStatsControllerGetTopFailingDomainsResponses = {
+    200: Array<DmarcTopFailingDomainDto>;
+};
+
+export type DmarcStatsControllerGetTopFailingDomainsResponse = DmarcStatsControllerGetTopFailingDomainsResponses[keyof DmarcStatsControllerGetTopFailingDomainsResponses];
+
+export type DmarcStatsControllerGetDomainStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dmarc/domains';
+};
+
+export type DmarcStatsControllerGetDomainStatsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetDomainStatsError = DmarcStatsControllerGetDomainStatsErrors[keyof DmarcStatsControllerGetDomainStatsErrors];
+
+export type DmarcStatsControllerGetDomainStatsResponses = {
+    200: Array<DmarcDomainStatsDto>;
+};
+
+export type DmarcStatsControllerGetDomainStatsResponse = DmarcStatsControllerGetDomainStatsResponses[keyof DmarcStatsControllerGetDomainStatsResponses];
+
+export type DmarcStatsControllerGetDispositionStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dmarc/dispositions';
+};
+
+export type DmarcStatsControllerGetDispositionStatsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetDispositionStatsError = DmarcStatsControllerGetDispositionStatsErrors[keyof DmarcStatsControllerGetDispositionStatsErrors];
+
+export type DmarcStatsControllerGetDispositionStatsResponses = {
+    200: Array<DmarcDispositionStatsDto>;
+};
+
+export type DmarcStatsControllerGetDispositionStatsResponse = DmarcStatsControllerGetDispositionStatsResponses[keyof DmarcStatsControllerGetDispositionStatsResponses];
+
+export type DmarcStatsControllerGetReporterStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dmarc/reporters';
+};
+
+export type DmarcStatsControllerGetReporterStatsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetReporterStatsError = DmarcStatsControllerGetReporterStatsErrors[keyof DmarcStatsControllerGetReporterStatsErrors];
+
+export type DmarcStatsControllerGetReporterStatsResponses = {
+    200: Array<DmarcReporterStatsDto>;
+};
+
+export type DmarcStatsControllerGetReporterStatsResponse = DmarcStatsControllerGetReporterStatsResponses[keyof DmarcStatsControllerGetReporterStatsResponses];
+
+export type DmarcStatsControllerGetRecentReportsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page size (default 50, max 200)
+         */
+        limit?: number;
+        /**
+         * Number of reports to skip (default 0)
+         */
+        offset?: number;
+    };
+    url: '/admin/dmarc/reports';
+};
+
+export type DmarcStatsControllerGetRecentReportsErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetRecentReportsError = DmarcStatsControllerGetRecentReportsErrors[keyof DmarcStatsControllerGetRecentReportsErrors];
+
+export type DmarcStatsControllerGetRecentReportsResponses = {
+    200: DmarcReportListDto;
+};
+
+export type DmarcStatsControllerGetRecentReportsResponse = DmarcStatsControllerGetRecentReportsResponses[keyof DmarcStatsControllerGetRecentReportsResponses];
+
+export type DmarcStatsControllerGetReportByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Report id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/admin/dmarc/reports/{id}';
+};
+
+export type DmarcStatsControllerGetReportByIdErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+    /**
+     * Authenticated but not an admin user
+     */
+    403: AdminForbiddenDto;
+};
+
+export type DmarcStatsControllerGetReportByIdError = DmarcStatsControllerGetReportByIdErrors[keyof DmarcStatsControllerGetReportByIdErrors];
+
+export type DmarcStatsControllerGetReportByIdResponses = {
+    /**
+     * The full DMARC report
      */
     200: unknown;
 };

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AttachmentsControllerGetAttachmentData, AttachmentsControllerGetAttachmentErrors, AttachmentsControllerGetAttachmentResponses, FoldersControllerListFoldersData, FoldersControllerListFoldersErrors, FoldersControllerListFoldersResponses, FoldersControllerListFoldersV2Data, FoldersControllerListFoldersV2Errors, FoldersControllerListFoldersV2Responses, HealthControllerHealthData, HealthControllerHealthResponses, MailsControllerApplyActionData, MailsControllerApplyActionErrors, MailsControllerApplyActionResponses, MailsControllerApplyBlacklistData, MailsControllerApplyBlacklistErrors, MailsControllerApplyBlacklistResponses, MailsControllerBimiLogoData, MailsControllerBimiLogoErrors, MailsControllerBimiLogoResponses, MailsControllerGetMessageData, MailsControllerGetMessageErrors, MailsControllerGetMessageResponses, MailsControllerListMessagesByFolderData, MailsControllerListMessagesByFolderErrors, MailsControllerListMessagesByFolderResponses, MailsControllerListMessagesData, MailsControllerListMessagesErrors, MailsControllerListMessagesResponses, MailsControllerListSentMessagesData, MailsControllerListSentMessagesErrors, MailsControllerListSentMessagesResponses, MailsControllerMessageActionsData, MailsControllerMessageActionsErrors, MailsControllerMessageActionsResponses, MailsControllerSendMessageData, MailsControllerSendMessageErrors, MailsControllerSendMessageResponses, MailsControllerViewMessageData, MailsControllerViewMessageErrors, MailsControllerViewMessageResponses, UsersControllerAddApnsData, UsersControllerAddApnsErrors, UsersControllerAddApnsResponses, UsersControllerAddBlacklistData, UsersControllerAddBlacklistErrors, UsersControllerAddBlacklistResponses, UsersControllerAddFirebaseData, UsersControllerAddFirebaseErrors, UsersControllerAddFirebaseResponses, UsersControllerUserConfigData, UsersControllerUserConfigErrors, UsersControllerUserConfigResponses, WebhooksControllerSendgridData, WebhooksControllerSendgridResponses } from './types.gen';
+import type { AttachmentsControllerGetAttachmentData, AttachmentsControllerGetAttachmentErrors, AttachmentsControllerGetAttachmentResponses, DmarcStatsControllerGetDispositionStatsData, DmarcStatsControllerGetDispositionStatsErrors, DmarcStatsControllerGetDispositionStatsResponses, DmarcStatsControllerGetDomainStatsData, DmarcStatsControllerGetDomainStatsErrors, DmarcStatsControllerGetDomainStatsResponses, DmarcStatsControllerGetOverviewData, DmarcStatsControllerGetOverviewErrors, DmarcStatsControllerGetOverviewResponses, DmarcStatsControllerGetRecentReportsData, DmarcStatsControllerGetRecentReportsErrors, DmarcStatsControllerGetRecentReportsResponses, DmarcStatsControllerGetReportByIdData, DmarcStatsControllerGetReportByIdErrors, DmarcStatsControllerGetReportByIdResponses, DmarcStatsControllerGetReporterStatsData, DmarcStatsControllerGetReporterStatsErrors, DmarcStatsControllerGetReporterStatsResponses, DmarcStatsControllerGetTimelineData, DmarcStatsControllerGetTimelineErrors, DmarcStatsControllerGetTimelineResponses, DmarcStatsControllerGetTopFailingDomainsData, DmarcStatsControllerGetTopFailingDomainsErrors, DmarcStatsControllerGetTopFailingDomainsResponses, DmarcStatsControllerGetTopFailingIpsData, DmarcStatsControllerGetTopFailingIpsErrors, DmarcStatsControllerGetTopFailingIpsResponses, FoldersControllerListFoldersData, FoldersControllerListFoldersErrors, FoldersControllerListFoldersResponses, FoldersControllerListFoldersV2Data, FoldersControllerListFoldersV2Errors, FoldersControllerListFoldersV2Responses, HealthControllerHealthData, HealthControllerHealthResponses, MailsControllerApplyActionData, MailsControllerApplyActionErrors, MailsControllerApplyActionResponses, MailsControllerApplyBlacklistData, MailsControllerApplyBlacklistErrors, MailsControllerApplyBlacklistResponses, MailsControllerBimiLogoData, MailsControllerBimiLogoErrors, MailsControllerBimiLogoResponses, MailsControllerGetMessageData, MailsControllerGetMessageErrors, MailsControllerGetMessageResponses, MailsControllerListMessagesByFolderData, MailsControllerListMessagesByFolderErrors, MailsControllerListMessagesByFolderResponses, MailsControllerListMessagesData, MailsControllerListMessagesErrors, MailsControllerListMessagesResponses, MailsControllerListSentMessagesData, MailsControllerListSentMessagesErrors, MailsControllerListSentMessagesResponses, MailsControllerMessageActionsData, MailsControllerMessageActionsErrors, MailsControllerMessageActionsResponses, MailsControllerSendMessageData, MailsControllerSendMessageErrors, MailsControllerSendMessageResponses, MailsControllerViewMessageData, MailsControllerViewMessageErrors, MailsControllerViewMessageResponses, UsersControllerAddApnsData, UsersControllerAddApnsErrors, UsersControllerAddApnsResponses, UsersControllerAddBlacklistData, UsersControllerAddBlacklistErrors, UsersControllerAddBlacklistResponses, UsersControllerAddFirebaseData, UsersControllerAddFirebaseErrors, UsersControllerAddFirebaseResponses, UsersControllerUserConfigData, UsersControllerUserConfigErrors, UsersControllerUserConfigResponses, WebhooksControllerSendgridData, WebhooksControllerSendgridResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -206,4 +206,103 @@ export const webhooksControllerSendgrid = <ThrowOnError extends boolean = false>
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Overall DMARC report statistics (admin only)
+ *
+ * Total reports, messages, pass/fail counts and rates across all stored DMARC aggregate reports.
+ */
+export const dmarcStatsControllerGetOverview = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetOverviewData, ThrowOnError>): RequestResult<DmarcStatsControllerGetOverviewResponses, DmarcStatsControllerGetOverviewErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetOverviewResponses, DmarcStatsControllerGetOverviewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/overview',
+    ...options
+});
+
+/**
+ * Per-day DMARC timeline (admin only)
+ *
+ * Daily report/message/pass/fail counts for the last N days, suitable for line/bar charts. Days without data are filled with zeros.
+ */
+export const dmarcStatsControllerGetTimeline = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetTimelineData, ThrowOnError>): RequestResult<DmarcStatsControllerGetTimelineResponses, DmarcStatsControllerGetTimelineErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetTimelineResponses, DmarcStatsControllerGetTimelineErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/timeline',
+    ...options
+});
+
+/**
+ * Top source IPs sending DMARC-failing messages (admin only)
+ *
+ * Source IPs ranked by the number of messages that fail DMARC (neither aligned DKIM nor SPF pass). Useful to spot abusive senders.
+ */
+export const dmarcStatsControllerGetTopFailingIps = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetTopFailingIpsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetTopFailingIpsResponses, DmarcStatsControllerGetTopFailingIpsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetTopFailingIpsResponses, DmarcStatsControllerGetTopFailingIpsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/top-failing-ips',
+    ...options
+});
+
+/**
+ * Top Header-From domains with DMARC failures (admin only)
+ *
+ * Header-From domains ranked by the number of messages failing DMARC. Useful to spot spoofing attempts.
+ */
+export const dmarcStatsControllerGetTopFailingDomains = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetTopFailingDomainsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetTopFailingDomainsResponses, DmarcStatsControllerGetTopFailingDomainsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetTopFailingDomainsResponses, DmarcStatsControllerGetTopFailingDomainsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/top-failing-domains',
+    ...options
+});
+
+/**
+ * DMARC statistics per reported domain (admin only)
+ *
+ * Reports, messages, pass/fail counts and pass rate for each reported domain (the domain the DMARC policy belongs to).
+ */
+export const dmarcStatsControllerGetDomainStats = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetDomainStatsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetDomainStatsResponses, DmarcStatsControllerGetDomainStatsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetDomainStatsResponses, DmarcStatsControllerGetDomainStatsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/domains',
+    ...options
+});
+
+/**
+ * Message count per DMARC disposition (admin only)
+ *
+ * How many messages received each disposition (none, quarantine, reject) across all reports.
+ */
+export const dmarcStatsControllerGetDispositionStats = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetDispositionStatsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetDispositionStatsResponses, DmarcStatsControllerGetDispositionStatsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetDispositionStatsResponses, DmarcStatsControllerGetDispositionStatsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/dispositions',
+    ...options
+});
+
+/**
+ * DMARC statistics per reporter organization (admin only)
+ *
+ * Reports, messages and covered domains for each reporter (google.com, yahoo.com, ...).
+ */
+export const dmarcStatsControllerGetReporterStats = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetReporterStatsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetReporterStatsResponses, DmarcStatsControllerGetReporterStatsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetReporterStatsResponses, DmarcStatsControllerGetReporterStatsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/reporters',
+    ...options
+});
+
+/**
+ * List recent DMARC reports (admin only)
+ *
+ * Paginated list of stored reports without their records array. Use `/admin/dmarc/reports/:id` for the full report.
+ */
+export const dmarcStatsControllerGetRecentReports = <ThrowOnError extends boolean = false>(options?: Options<DmarcStatsControllerGetRecentReportsData, ThrowOnError>): RequestResult<DmarcStatsControllerGetRecentReportsResponses, DmarcStatsControllerGetRecentReportsErrors, ThrowOnError> => (options?.client ?? client).get<DmarcStatsControllerGetRecentReportsResponses, DmarcStatsControllerGetRecentReportsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/reports',
+    ...options
+});
+
+/**
+ * Get a full DMARC report by id (admin only)
+ *
+ * Returns the complete stored report including all records (per-source-IP results, identifiers, auth results).
+ */
+export const dmarcStatsControllerGetReportById = <ThrowOnError extends boolean = false>(options: Options<DmarcStatsControllerGetReportByIdData, ThrowOnError>): RequestResult<DmarcStatsControllerGetReportByIdResponses, DmarcStatsControllerGetReportByIdErrors, ThrowOnError> => (options.client ?? client).get<DmarcStatsControllerGetReportByIdResponses, DmarcStatsControllerGetReportByIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }, { name: 'Token', type: 'apiKey' }],
+    url: '/admin/dmarc/reports/{id}',
+    ...options
 });

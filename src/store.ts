@@ -2,6 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx'
 
 import { handleApiError } from './api'
 import type {
+  AdminForbiddenDto,
   FolderDto,
   FoldersV2Dto,
   MailAddressDto,
@@ -9,6 +10,7 @@ import type {
   UserConfigDto,
 } from './client'
 import {
+  dmarcStatsControllerGetOverview,
   foldersControllerListFoldersV2,
   mailsControllerListMessagesByFolder,
   usersControllerUserConfig,
@@ -29,16 +31,6 @@ export interface Mail extends MailDto {
   messageId?: string
   /** Raw message headers (`message-id`, `date`, ...), as parsed by the server. */
   headers?: Record<string, unknown>
-  spam?: SpamCheck
-}
-
-/** SpamAssassin result of a mail (not in the OpenAPI spec yet). */
-export interface SpamCheck {
-  score: number
-  /** Score from which the mail is considered spam. */
-  required: number
-  isSpam: boolean
-  rules?: Array<{ name: string; score: number; description?: string }>
 }
 
 /** User configuration; `defaultName` is sent by the server but not in the spec. */
@@ -82,6 +74,9 @@ function loadCollapsedCategories(): CollapsedState {
 
 class Store {
   user: UserConfig = {}
+
+  /** Null until probed; true when the user has admin access. */
+  isAdmin: boolean | null = null
 
   isGettingFolders = false
   folders: Folders = {
@@ -152,6 +147,21 @@ class Store {
     } catch (err) {
       // no connection - TODO: show a notification
       console.error('Failed to load user config:', err)
+    }
+  }
+
+  /** Probes an admin endpoint to determine if the user is an admin. */
+  async checkAdminAccess(): Promise<void> {
+    try {
+      const { error } = await dmarcStatsControllerGetOverview()
+      runInAction(() => {
+        // 403 AdminForbiddenDto means authenticated but not admin
+        this.isAdmin = !error || (error as AdminForbiddenDto).err !== 'admin access required'
+      })
+    } catch {
+      runInAction(() => {
+        this.isAdmin = false
+      })
     }
   }
 

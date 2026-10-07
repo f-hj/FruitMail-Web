@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
+import AdminDmarc from './AdminDmarc'
+import AdminDmarcReport from './AdminDmarcReport'
 import App from './App'
 import Callback from './Callback'
 import MailLayout from './MailLayout'
@@ -32,6 +34,8 @@ createRoot(rootElement).render(
           <Route path="/writeMail" element={<WriteMail />} />
           <Route path="/writeMail/:inReplyTo" element={<WriteMail />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/admin/dmarc" element={<AdminDmarc />} />
+          <Route path="/admin/dmarc/reports/:id" element={<AdminDmarcReport />} />
           <Route path="/:type/:folder" element={<MailLayout />} />
           <Route path="/:type/:folder/:id" element={<MailLayout />} />
           <Route path="*" element={<Navigate to="/new/inbox" replace />} />
