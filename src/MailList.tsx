@@ -1,7 +1,7 @@
 import { ClickableTile, InlineLoading, Stack } from '@carbon/react'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, useParams } from 'react-router-dom'
+import { NavLink, useLocation, useParams } from 'react-router-dom'
 
 import { bimiLogoUrl } from './api'
 import { formatAddresses, formatDate } from './format'
@@ -36,7 +36,10 @@ function BimiLogo({ mailId }: { mailId: string }) {
  */
 const MailList = observer(function MailList() {
   const { type, folder, id: selectedId } = useParams()
-  const isSent = type === 'sent'
+  const { pathname } = useLocation()
+  // the sent mailbox lives under the static `/sent/...` routes, which carry no
+  // `:type` param — detect it from the path, like the sidebar does
+  const isSent = pathname.startsWith('/sent')
   const category: MailType = isSent ? 'sent' : isMailCategory(type) ? type : 'new'
   const [loadingMore, setLoadingMore] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
