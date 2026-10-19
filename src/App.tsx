@@ -17,6 +17,9 @@ import {
   SideNavMenu,
   SideNavMenuItem,
   SkipToContent,
+  Tab,
+  TabList,
+  Tabs,
   ToastNotification,
 } from '@carbon/react'
 import { Edit, Renew, User } from '@carbon/icons-react'
@@ -32,11 +35,11 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { FRUITICE_ACCOUNT_URL, getToken, logout, redirectToOauth } from './api'
 import type { FolderDto } from './client'
-import store, { type MailCategory } from './store'
+import store, { type MailType } from './store'
 
 interface FolderGroupProps {
   title: string
-  category: MailCategory
+  category: MailType
   folders: Array<FolderDto>
 }
 
@@ -50,7 +53,7 @@ function decodePathname(pathname: string): string {
 }
 
 /** True when the current route shows the given folder (with or without a selected mail). */
-function isFolderActive(pathname: string, category: MailCategory, folderName: string): boolean {
+function isFolderActive(pathname: string, category: MailType, folderName: string): boolean {
   const decoded = decodePathname(pathname)
   const base = `/${category}/${folderName}`
   return decoded === base || decoded.startsWith(`${base}/`)
@@ -110,6 +113,43 @@ const FolderGroup = observer(function FolderGroup({
         )
       })}
     </SideNavMenu>
+  )
+})
+
+/**
+ * Incoming/Sent switcher at the top of the side nav, above the folder search.
+ * The selected tab follows the current route; selecting the other tab
+ * navigates to its default view (`/new/inbox`, or `/sent` which lands on the
+ * first sent folder).
+ */
+const MailboxTabs = observer(function MailboxTabs() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const isSent = pathname.startsWith('/sent')
+
+  function handleChange({ selectedIndex }: { selectedIndex: number }) {
+    const wantSent = selectedIndex === 1
+    if (wantSent === isSent) {
+      return
+    }
+    if (wantSent) {
+      // make sure the sent folders are available when the tab is first used
+      if (store.sentFolders.length === 0 && !store.isGettingSentFolders) {
+        store.getSentFolders()
+      }
+      navigate('/sent')
+    } else {
+      navigate('/new/inbox')
+    }
+  }
+
+  return (
+    <Tabs selectedIndex={isSent ? 1 : 0} onChange={handleChange}>
+      <TabList aria-label="Mailbox" size="sm">
+        <Tab>Incoming</Tab>
+        <Tab>Sent</Tab>
+      </TabList>
+    </Tabs>
   )
 })
 
@@ -197,6 +237,9 @@ const App = observer(function App() {
   // only meaningful below the `lg` breakpoint, where the side nav overlays
   // the content and starts closed
   const [isSideNavExpanded, setIsSideNavExpanded] = useState(false)
+  // the sent mailbox lives under `/sent/...`, incoming under `/:type/...`
+  const isSent = pathname.startsWith('/sent')
+  const isGettingFolders = isSent ? store.isGettingSentFolders : store.isGettingFolders
 
   useEffect(() => {
     if (getToken() === null) {
@@ -204,6 +247,7 @@ const App = observer(function App() {
       return
     }
     store.getFolders()
+    store.getSentFolders()
     store.getUserConfig()
     store.checkAdminAccess()
   }, [])
@@ -242,6 +286,7 @@ const App = observer(function App() {
           onClick={handleSideNavClick}
           onOverlayClick={() => setIsSideNavExpanded(false)}
         >
+          <MailboxTabs />
           <div className="folder-toolbar">
             <Search
               id="folder-search-input"
@@ -254,17 +299,23 @@ const App = observer(function App() {
               kind="ghost"
               size="sm"
               align="bottom-end"
-              label="Refresh folders"
-              disabled={store.isGettingFolders}
-              onClick={() => store.getFolders()}
+              label={isSent ? 'Refresh sent folders' : 'Refresh folders'}
+              disabled={isGettingFolders}
+              onClick={() => (isSent ? store.getSentFolders() : store.getFolders())}
             >
-              <Renew className={store.isGettingFolders ? 'spinning' : undefined} />
+              <Renew className={isGettingFolders ? 'spinning' : undefined} />
             </IconButton>
           </div>
           <SideNavItems>
-            <FolderGroup title="Fresh" category="new" folders={store.folders.newP} />
-            <FolderGroup title="Read" category="read" folders={store.folders.readP} />
-            <FolderGroup title="Done" category="done" folders={store.folders.doneP} />
+            {isSent ? (
+              <FolderGroup title="Sent" category="sent" folders={store.sentFoldersP} />
+            ) : (
+              <>
+                <FolderGroup title="Fresh" category="new" folders={store.folders.newP} />
+                <FolderGroup title="Read" category="read" folders={store.folders.readP} />
+                <FolderGroup title="Done" category="done" folders={store.folders.doneP} />
+              </>
+            )}
           </SideNavItems>
         </SideNav>
       </Header>

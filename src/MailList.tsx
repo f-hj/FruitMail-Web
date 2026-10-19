@@ -5,7 +5,7 @@ import { NavLink, useParams } from 'react-router-dom'
 
 import { bimiLogoUrl } from './api'
 import { formatAddresses, formatDate } from './format'
-import store, { isMailCategory } from './store'
+import store, { isMailCategory, type MailType } from './store'
 
 /**
  * Verified BIMI brand logo. List endpoints do not include the logo itself,
@@ -36,7 +36,8 @@ function BimiLogo({ mailId }: { mailId: string }) {
  */
 const MailList = observer(function MailList() {
   const { type, folder, id: selectedId } = useParams()
-  const category = isMailCategory(type) ? type : 'new'
+  const isSent = type === 'sent'
+  const category: MailType = isSent ? 'sent' : isMailCategory(type) ? type : 'new'
   const [loadingMore, setLoadingMore] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -84,7 +85,8 @@ const MailList = observer(function MailList() {
                 <span className="mail-tile-subject">{msg.subject || '(no subject)'}</span>
                 <span className="mail-tile-from">
                   {msg.bimi?.verified && <BimiLogo mailId={msg.id} />}
-                  {formatAddresses(msg.from)}
+                  {/* sent mails are listed by recipient, received ones by sender */}
+                  {formatAddresses(isSent ? (msg.to ?? msg.envelopeTo ?? msg.from) : msg.from)}
                 </span>
                 <time className="mail-tile-date" dateTime={new Date(msg.date).toISOString()}>{formatDate(msg.date)}</time>
               </Stack>

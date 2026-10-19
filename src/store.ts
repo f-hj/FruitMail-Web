@@ -12,12 +12,17 @@ import type {
 import {
   dmarcStatsControllerGetOverview,
   foldersControllerListFoldersV2,
+  foldersControllerListSentFolders,
   mailsControllerListMessagesByFolder,
+  mailsControllerListSentMessages,
   usersControllerUserConfig,
 } from './client'
 import { asArray } from './format'
 
 export type MailCategory = 'new' | 'read' | 'done'
+
+/** Folder-list segment of the mail routes: a read-state category, or `sent`. */
+export type MailType = MailCategory | 'sent'
 
 /**
  * A mail as returned by the server. The OpenAPI spec does not (yet) declare
@@ -55,12 +60,16 @@ export function isMailCategory(value?: string): value is MailCategory {
   return value === 'new' || value === 'read' || value === 'done'
 }
 
+export function isMailType(value?: string): value is MailType {
+  return value === 'sent' || isMailCategory(value)
+}
+
 const COLLAPSED_STORAGE_KEY = 'fruitmail.collapsedCategories'
 
-type CollapsedState = Record<MailCategory, boolean>
+type CollapsedState = Record<MailType, boolean>
 
 function loadCollapsedCategories(): CollapsedState {
-  const collapsed: CollapsedState = { new: false, read: false, done: false }
+  const collapsed: CollapsedState = { new: false, read: false, done: false, sent: false }
   try {
     const raw = localStorage.getItem(COLLAPSED_STORAGE_KEY)
     if (raw) {
@@ -88,7 +97,12 @@ class Store {
     doneP: [],
   }
 
-  currentType: MailCategory = 'new'
+  isGettingSentFolders = false
+  /** Sent folders (flat list from `/folders/sent`), plus the search-filtered copy. */
+  sentFolders: Array<FolderDto> = []
+  sentFoldersP: Array<FolderDto> = []
+
+  currentType: MailType = 'new'
   currentFolder = 'inbox'
   currentFolderMails: Array<Mail> = []
 
@@ -196,16 +210,42 @@ class Store {
     }
   }
 
+  /** Loads the sent folders (`GET /folders/sent`). */
+  async getSentFolders(): Promise<void> {
+    this.isGettingSentFolders = true
+    try {
+      const { data, error } = await foldersControllerListSentFolders()
+      if (error) {
+        handleApiError(error)
+        return
+      }
+      if (data) {
+        runInAction(() => {
+          this.sentFolders = asArray(data)
+          this.sentFoldersP = asArray(data)
+        })
+      }
+    } catch (err) {
+      // no connection - TODO: show a notification
+      console.error('Failed to load sent folders:', err)
+    } finally {
+      runInAction(() => {
+        this.isGettingSentFolders = false
+      })
+    }
+  }
+
   /** Filters the sidebar folder lists by name. */
   filterFolders(search: string): void {
     const matches = (folder: FolderDto) => folder.name.includes(search)
     this.folders.newP = this.folders.new.filter(matches)
     this.folders.readP = this.folders.read.filter(matches)
     this.folders.doneP = this.folders.done.filter(matches)
+    this.sentFoldersP = this.sentFolders.filter(matches)
   }
 
   /** Collapses or expands a sidebar category group. */
-  toggleCategory(category: MailCategory): void {
+  toggleCategory(category: MailType): void {
     this.collapsed[category] = !this.collapsed[category]
     try {
       localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(this.collapsed))
@@ -216,10 +256,11 @@ class Store {
 
   /**
    * Loads the mails of a folder. With `push`, the next page (15 mails older
-   * than the last loaded one) is appended for infinite scrolling.
+   * than the last loaded one) is appended for infinite scrolling. The `sent`
+   * type lists sent mails (`GET /msgs/sent`) instead of received ones.
    */
   async getMails(type?: string, folder?: string, push = false): Promise<void> {
-    if (isMailCategory(type)) {
+    if (isMailType(type)) {
       this.currentType = type
     }
     if (folder) {
@@ -231,11 +272,24 @@ class Store {
       from = this.currentFolderMails[this.currentFolderMails.length - 1].date
     }
 
+    const mailType = this.currentType
     try {
-      const { data, error } = await mailsControllerListMessagesByFolder({
-        path: { category: this.currentType, folder: this.currentFolder },
-        query: { nb: '15', direction: 'past', from: String(from) },
-      })
+      let data: Array<MailDto> | undefined
+      let error: unknown
+      if (mailType === 'sent') {
+        const result = await mailsControllerListSentMessages({
+          query: { nb: '15', direction: 'past', from: String(from), folder: this.currentFolder },
+        })
+        data = result.data
+        error = result.error
+      } else {
+        const result = await mailsControllerListMessagesByFolder({
+          path: { category: mailType, folder: this.currentFolder },
+          query: { nb: '15', direction: 'past', from: String(from) },
+        })
+        data = result.data
+        error = result.error
+      }
       if (error) {
         handleApiError(error)
         return

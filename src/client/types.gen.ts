@@ -1145,6 +1145,28 @@ export type FoldersControllerListFoldersResponses = {
 
 export type FoldersControllerListFoldersResponse = FoldersControllerListFoldersResponses[keyof FoldersControllerListFoldersResponses];
 
+export type FoldersControllerListSentFoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/folders/sent';
+};
+
+export type FoldersControllerListSentFoldersErrors = {
+    /**
+     * Missing or invalid token
+     */
+    400: AuthErrorDto;
+};
+
+export type FoldersControllerListSentFoldersError = FoldersControllerListSentFoldersErrors[keyof FoldersControllerListSentFoldersErrors];
+
+export type FoldersControllerListSentFoldersResponses = {
+    200: Array<FolderDto>;
+};
+
+export type FoldersControllerListSentFoldersResponse = FoldersControllerListSentFoldersResponses[keyof FoldersControllerListSentFoldersResponses];
+
 export type FoldersControllerListFoldersV2Data = {
     body?: never;
     path?: never;

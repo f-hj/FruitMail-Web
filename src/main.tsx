@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react-lite'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
@@ -8,6 +9,7 @@ import App from './App'
 import Callback from './Callback'
 import MailLayout from './MailLayout'
 import Settings from './Settings'
+import store from './store'
 import WriteMail from './WriteMail'
 
 // Carbon uses a semibold weight in a few places (header name, headings), so
@@ -24,6 +26,18 @@ if (!rootElement) {
   throw new Error('Root element #root not found')
 }
 
+/**
+ * `/sent` landing: forwards to the first sent folder once they are loaded,
+ * and shows an empty mailbox while there are none.
+ */
+const SentRedirect = observer(function SentRedirect() {
+  const first = store.sentFolders[0]
+  if (first) {
+    return <Navigate to={`/sent/${encodeURIComponent(first.name)}`} replace />
+  }
+  return <MailLayout />
+})
+
 createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
@@ -36,6 +50,9 @@ createRoot(rootElement).render(
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin/dmarc" element={<AdminDmarc />} />
           <Route path="/admin/dmarc/reports/:id" element={<AdminDmarcReport />} />
+          <Route path="/sent" element={<SentRedirect />} />
+          <Route path="/sent/:folder" element={<MailLayout />} />
+          <Route path="/sent/:folder/:id" element={<MailLayout />} />
           <Route path="/:type/:folder" element={<MailLayout />} />
           <Route path="/:type/:folder/:id" element={<MailLayout />} />
           <Route path="*" element={<Navigate to="/new/inbox" replace />} />
